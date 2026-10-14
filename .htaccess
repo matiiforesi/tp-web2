@@ -1,0 +1,59 @@
+# ══════════════════════════════════════════════════════
+# SEGURIDAD
+# ══════════════════════════════════════════════════════
+
+# Deshabilita el listado de directorios.
+# Evita exponer listados de directorios.
+Options -Indexes
+
+# Bloquea el acceso HTTP directo a archivos sensibles.
+# Los archivos de configuración internos no deben descargarse desde el navegador.
+<FilesMatch ".*\.(log|ini|htaccess)$">
+    deny from all
+</FilesMatch>
+
+# ══════════════════════════════════════════════════════
+# URL REWRITING
+# Transforma URLs limpias en la URL real de PHP.
+# El navegador pide:  /grupo/show
+# Apache convierte: index.php?controller=grupo&method=show
+# El navegador no necesita conocer index.php.
+# ══════════════════════════════════════════════════════
+<IfModule mod_rewrite.c>
+    # Activa el motor de reescritura.
+    RewriteEngine On
+
+    # Raíz desde donde se aplican las reglas (relativo al DocumentRoot).
+    # Si el proyecto no está en la raíz de htdocs, cambiar a /nombre-carpeta/
+    RewriteBase /
+
+    # ── SEGURIDAD: código interno inaccesible por URL directa ──
+    # app/, helper/ y vendor/ contienen código interno y la librería Mustache.
+    RewriteRule ^(app|helper|vendor|config|sql)/ - [F,L]
+
+    # ── REGLA 0: /public/* ────────────────────────────────
+    # Assets estáticos (css, js, imágenes). Se sirven tal cual,
+    # nunca pasan por index.php ni por el router.
+    RewriteRule ^public/ - [L]
+
+    # ── CONDICIONES ── (aplican a las dos reglas de abajo)
+    # Solo reescribir si la URL NO es un archivo real en disco.
+    # Ej: /css/estilo.css NO se reescribe porque el archivo existe.
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # Solo reescribir si la URL NO es un directorio real en disco.
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # ── REGLA 1: /controller/method ──────────────────────
+    # ^([^/]+)/([^/]+)$  →  captura dos segmentos separados por /
+    #   $1 = primer segmento  (controller)
+    #   $2 = segundo segmento (method)
+    # [L]   = Last: si esta regla coincide, no evaluar las siguientes.
+    # [QSA] = Query String Append: conserva parámetros adicionales.
+    #   /grupo/show?ejemplo=1 llega como controller=evento&method=editar&id=5
+    RewriteRule ^([^/]+)/([^/]+)$ index.php?controller=$1&method=$2 [L,QSA]
+
+    # ── REGLA 2: /controller (sin method) ────────────────
+    # Si solo viene el controller, el router usa el método default ('show').
+    RewriteRule ^([^/]+)$         index.php?controller=$1           [L,QSA]
+</IfModule>

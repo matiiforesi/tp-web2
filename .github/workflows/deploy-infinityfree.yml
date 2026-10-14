@@ -1,0 +1,38 @@
+name: Deploy to InfinityFree
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar lftp
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y lftp
+
+      - name: Deploy a InfinityFree
+        env:
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          echo "Iniciando deploy a InfinityFree..."
+          lftp -e "
+          set ftp:ssl-allow no;
+          set net:max-retries 3;
+          set net:timeout 20;
+          open -u $FTP_USER,$FTP_PASS $FTP_HOST;
+          mirror -R ./ /htdocs/ \
+            --exclude-glob .git* \
+            --exclude-glob .github/ \
+            --exclude-glob config/config.ini;
+          bye
+          "
