@@ -1,0 +1,5 @@
+# Las fotos de perfil son solo archivos estaticos: nunca se ejecuta codigo desde aca.
+<FilesMatch "\.(php|phtml|php[0-9]|phar)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes -ExecCGI

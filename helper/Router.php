@@ -8,15 +8,15 @@ class Router
 
     public function __construct($config, $defaultController, $defaultMethod)
     {
-        $this->config            = $config;
+        $this->config = $config;
         $this->defaultController = $defaultController;
-        $this->defaultMethod     = $defaultMethod;
+        $this->defaultMethod = $defaultMethod;
     }
 
     public function dispatch($controllerName, $method)
     {
         $controller = $this->getController($controllerName);
-        $method     = $this->getMethod($controller, $method);
+        $method = $this->getMethod($controller, $method);
         $controller->{$method}();
     }
 

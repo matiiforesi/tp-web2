@@ -1,0 +1,11 @@
+[23:19:55] [INFO] SELECT id, nombre FROM pais ORDER BY nombre
+[23:19:55] [INFO] SELECT id, pais_id, nombre, latitud, longitud FROM ciudad ORDER BY nombre
+[23:21:47] [INFO] SELECT id FROM usuario WHERE email = ?
+[23:21:47] [INFO] SELECT id FROM usuario WHERE usuario = ?
+[23:21:47] [INFO] SELECT id FROM ciudad WHERE id = ? AND pais_id = ?
+[23:21:47] [INFO] INSERT INTO usuario
+                (rol_id, nombre_completo, anio_nacimiento, sexo, pais_id, ciudad_id,
+                 email, usuario, password_hash, foto_perfil)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+[23:30:24] [INFO] SELECT id, nombre FROM pais ORDER BY nombre
+[23:30:24] [INFO] SELECT id, pais_id, nombre, latitud, longitud FROM ciudad ORDER BY nombre
