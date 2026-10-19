@@ -25,7 +25,74 @@ class UsuarioController
     // GET /usuario/login
     public function login()
     {
+        if (isset($_SESSION['usuario_id'])) {
+            Redirect::to('/usuario/lobby');
+        }
+
         $this->render->renderiza('login', []);
+    }
+
+    // POST /usuario/autenticar
+    public function autenticar()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Redirect::to('/usuario/login');
+        }
+
+        $usuario = trim(Request::post('usuario', ''));
+        $password = Request::post('password', '');
+
+        if ($usuario === '' || $password === '') {
+            $this->render->renderiza('login', [
+                'error' => 'Por favor, completá todos los campos.',
+                'usuario' => $usuario,
+            ]);
+            return;
+        }
+
+        $usuarioValido = $this->model->autenticar($usuario, $password);
+
+        if (!$usuarioValido) {
+            $this->render->renderiza('login', [
+                'error' => 'Usuario o contraseña incorrectos.',
+                'usuario' => $usuario,
+            ]);
+            return;
+        }
+
+        session_regenerate_id(true);
+        $_SESSION['usuario_id'] = (int)$usuarioValido['id'];
+        $_SESSION['usuario'] = $usuarioValido['usuario'];
+        $_SESSION['rol_id'] = (int)$usuarioValido['rol_id'];
+
+        Redirect::to('/usuario/lobby');
+    }
+
+    // GET /usuario/lobby
+    public function lobby()
+    {
+        if (!isset($_SESSION['usuario_id'])) {
+            Redirect::to('/usuario/login');
+        }
+
+        $this->render->renderiza('lobby', [
+            'usuario' => $_SESSION['usuario'],
+        ]);
+    }
+
+    // GET /usuario/logout
+    public function logout()
+    {
+        $_SESSION = [];
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+        session_destroy();
+        Redirect::to('/usuario/login');
     }
 
     // GET /usuario/registro
