@@ -139,6 +139,17 @@ h1 {
     background: #356a9a;
 }
 
+.boton-secundario {
+    background: #e9eef5;
+    color: #243b53;
+    border: 1px solid #c3cfdd;
+}
+
+.boton-secundario:hover {
+    background: #dbe4ef;
+    color: #1a2c3d;
+}
+
 .errores {
     margin-bottom: 1.2rem;
     padding: .9rem 1.1rem;
@@ -181,7 +192,11 @@ h1 {
     }
 }
 
-/* ── Acciones en la pagina de inicio ─────────────── */
+/* ── Acciones en formularios y páginas ─────────────── */
 .acciones {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
+    display: flex;
+    gap: .8rem;
+    align-items: center;
+    flex-wrap: wrap;
 }

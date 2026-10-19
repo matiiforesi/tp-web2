@@ -22,6 +22,12 @@ class UsuarioController
         $this->render = $render;
     }
 
+    // GET /usuario/login
+    public function login()
+    {
+        $this->render->renderiza('login', []);
+    }
+
     // GET /usuario/registro
     public function registro()
     {
