@@ -68,6 +68,30 @@ class UsuarioModel
         return $this->db->queryOne("SELECT id FROM usuario WHERE usuario = ?", [$usuario]) !== null;
     }
 
+    public function buscarPorUsuario(string $usuario)
+    {
+        return $this->db->queryOne(
+            "SELECT id, usuario, password_hash, rol_id, cuenta_validada
+             FROM usuario
+             WHERE usuario = ?",
+            [$usuario]
+        );
+    }
+
+    public function autenticar(string $usuario, string $password)
+    {
+        $u = $this->buscarPorUsuario($usuario);
+        if ($u === null) {
+            return false;
+        }
+
+        if (!password_verify($password, $u['password_hash'])) {
+            return false;
+        }
+
+        return $u;
+    }
+
     /** Inserta el usuario SIEMPRE como jugador y devuelve su id. Lanza PDOException si falla. */
     public function crear(array $d, $fotoPerfil): int
     {
