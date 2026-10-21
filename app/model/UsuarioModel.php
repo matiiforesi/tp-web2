@@ -43,6 +43,8 @@ class UsuarioModel
             $errores[] = 'Ya existe una cuenta registrada con ese mail.';
         }
 
+        $errores = array_merge($errores, $this->validarUbicacion($d));
+
         if (!preg_match('/^[A-Za-z0-9_]{3,20}$/', $d['usuario'])) {
             $errores[] = 'El nombre de usuario debe tener de 3 a 20 caracteres. Puede incluir letras, números o guión bajo.';
         } elseif ($this->usuarioExiste($d['usuario'])) {
@@ -56,6 +58,23 @@ class UsuarioModel
         }
 
         return $errores;
+    }
+
+    /** La ubicacion se elige en el mapa mediante geocodificacion. Aca se valida forma y rango. */
+    private function validarUbicacion(array $d): array
+    {
+        $lat = filter_var($d['latitud'], FILTER_VALIDATE_FLOAT);
+        $lng = filter_var($d['longitud'], FILTER_VALIDATE_FLOAT);
+
+        if ($lat === false || $lng === false || $lat < -90 || $lat > 90 || $lng < -180 || $lng > 180) {
+            return ['Elegí tu ubicación haciendo click en el mapa.'];
+        }
+        if (!preg_match('/^[A-Z]{2}$/', $d['pais_codigo'])
+            || mb_strlen($d['pais']) < 2 || mb_strlen($d['pais']) > 80
+            || mb_strlen($d['ciudad']) < 1 || mb_strlen($d['ciudad']) > 100) {
+            return ['No pudimos identificar el país y la ciudad del punto elegido. Probá con otro punto del mapa.'];
+        }
+        return [];
     }
 
     public function emailExiste($email): bool
@@ -97,16 +116,19 @@ class UsuarioModel
     {
         $this->db->execute(
             "INSERT INTO usuario
-                (rol_id, nombre_completo, anio_nacimiento, sexo, pais_id, ciudad_id,
-                 email, usuario, password_hash, foto_perfil)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (rol_id, nombre_completo, anio_nacimiento, sexo, pais_codigo, pais, ciudad,
+                 latitud, longitud, email, usuario, password_hash, foto_perfil)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 self::ROL_JUGADOR,
                 $d['nombre_completo'],
                 (int)$d['anio_nacimiento'],
                 $d['sexo'],
-                (int)$d['pais_id'],
-                (int)$d['ciudad_id'],
+                $d['pais_codigo'],
+                $d['pais'],
+                $d['ciudad'],
+                round((float)$d['latitud'], 6),
+                round((float)$d['longitud'], 6),
                 $d['email'],
                 $d['usuario'],
                 password_hash($d['password'], PASSWORD_DEFAULT),

@@ -12,13 +12,11 @@ use Throwable;
 class UsuarioController
 {
     private $model;
-    private $ubicacion;
     private $render;
 
-    public function __construct($model, $ubicacion, $render)
+    public function __construct($model, $render)
     {
         $this->model = $model;
-        $this->ubicacion = $ubicacion;
         $this->render = $render;
     }
 
@@ -112,10 +110,6 @@ class UsuarioController
         $foto = $_FILES['foto_perfil'] ?? null;
 
         $errores = $this->model->validarRegistro($datos);
-
-        if (!$this->ubicacion->ciudadPerteneceAPais((int) $datos['ciudad_id'], (int) $datos['pais_id'])) {
-            $errores[] = 'Elegí un país y una ciudad válidos.';
-        }
         $errores = array_merge($errores, ImageUpload::validar($foto));
 
         if (!empty($errores)) {
@@ -163,63 +157,45 @@ class UsuarioController
     private function leerDatosDelFormulario(): array
     {
         $texto = function ($clave) {
-            return trim((string) Request::post($clave, ''));
+            return trim((string)Request::post($clave, ''));
         };
 
         return [
-            'nombre_completo'   => $texto('nombre_completo'),
-            'anio_nacimiento'   => $texto('anio_nacimiento'),
-            'sexo'              => $texto('sexo'),
-            'pais_id'           => $texto('pais_id'),
-            'ciudad_id'         => $texto('ciudad_id'),
-            'email'             => $texto('email'),
-            'usuario'           => $texto('usuario'),
-            'password'          => $texto('password'),
+            'nombre_completo' => $texto('nombre_completo'),
+            'anio_nacimiento' => $texto('anio_nacimiento'),
+            'sexo' => $texto('sexo'),
+            'pais_codigo' => strtoupper($texto('pais_codigo')),
+            'pais' => $texto('pais'),
+            'ciudad' => $texto('ciudad'),
+            'latitud' => $texto('latitud'),
+            'longitud' => $texto('longitud'),
+            'email' => $texto('email'),
+            'usuario' => $texto('usuario'),
+            'password' => $texto('password'),
             'password_repetida' => $texto('password_repetida'),
         ];
     }
 
     private function mostrarFormulario(array $datos, array $errores)
     {
-        $paisId = (int) ($datos['pais_id'] ?? 0);
-        $ciudadId = (int) ($datos['ciudad_id'] ?? 0);
-
-        $paises = array_map(function ($p) use ($paisId) {
-            $p['selected'] = ((int) $p['id'] === $paisId);
-            return $p;
-        }, $this->ubicacion->obtenerPaises());
-
-        $todasLasCiudades = $this->ubicacion->obtenerCiudades();
-
-        // Para volver a mostrar el formulario sin JS con la ciudad ya elegida.
-        $ciudades = [];
-        foreach ($todasLasCiudades as $c) {
-            if ((int) $c['pais_id'] === $paisId) {
-                $c['selected'] = ((int) $c['id'] === $ciudadId);
-                $ciudades[] = $c;
-            }
-        }
-
         $sexos = [];
         foreach (UsuarioModel::SEXOS as $valor => $etiqueta) {
             $sexos[] = [
-                'valor'    => $valor,
+                'valor' => $valor,
                 'etiqueta' => $etiqueta,
                 'selected' => (($datos['sexo'] ?? 'N') === $valor),
             ];
         }
 
         $this->render->renderiza('registro', [
-            'errores'        => array_map(function ($m) { return ['mensaje' => $m]; }, $errores),
-            'hayErrores'     => !empty($errores),
-            'datos'          => $datos,
-            'paises'         => $paises,
-            'ciudades'       => $ciudades,
-            'sexos'          => $sexos,
-            'anioMaximo'     => (int) date('Y'),
-            'anioMinimo'     => (int) date('Y') - 120,
-            // JSON_HEX_* evita que un valor de la base pueda cerrar el <script>.
-            'ciudadesJson'   => json_encode($todasLasCiudades, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+            'errores' => array_map(function ($m) {
+                return ['mensaje' => $m];
+            }, $errores),
+            'hayErrores' => !empty($errores),
+            'datos' => $datos,
+            'sexos' => $sexos,
+            'anioMaximo' => (int)date('Y'),
+            'anioMinimo' => (int)date('Y') - 120,
         ]);
     }
 

@@ -5,7 +5,6 @@ namespace app;
 use app\controller\GrupoController;
 use app\controller\UsuarioController;
 use app\model\GrupoModel;
-use app\model\UbicacionModel;
 use app\model\UsuarioModel;
 use MustacheRender;
 use MyDatabase;
@@ -34,7 +33,6 @@ class Configuration
     {
         return new UsuarioController(
             $this->getUsuarioModel(),
-            $this->getUbicacionModel(),
             $this->getRender()
         );
     }
@@ -48,11 +46,6 @@ class Configuration
     private function getUsuarioModel()
     {
         return new UsuarioModel($this->getDatabase());
-    }
-
-    private function getUbicacionModel()
-    {
-        return new UbicacionModel($this->getDatabase());
     }
 
     // Una sola conexion por request, compartida por todos los modelos.

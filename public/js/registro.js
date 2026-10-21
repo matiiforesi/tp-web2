@@ -1,56 +1,21 @@
 (function () {
-    var selPais = document.getElementById('pais_id');
-    var selCiudad = document.getElementById('ciudad_id');
-    var contenedorMapa = document.getElementById('mapa-contenedor');
-    var iframe = document.getElementById('mapa-iframe');
-    var enlace = document.getElementById('mapa-enlace');
+    'use strict';
+
     var inputFoto = document.getElementById('foto_perfil');
     var preview = document.getElementById('foto-preview');
-    var ciudades = JSON.parse(document.getElementById('ciudades-data').textContent);
+    var form = document.getElementById('form-registro');
+    var contenedor = document.getElementById('mapa');
+    var texto = document.getElementById('ubicacion-texto');
 
-    function cargarCiudades() {
-        var paisId = selPais.value;
-        selCiudad.innerHTML = '';
-        var vacia = document.createElement('option');
-        vacia.value = '';
-        vacia.textContent = paisId ? 'Elegí una ciudad' : 'Elegí un país primero';
-        selCiudad.appendChild(vacia);
+    var campos = {
+        pais_codigo: document.getElementById('pais_codigo'),
+        pais: document.getElementById('pais'),
+        ciudad: document.getElementById('ciudad'),
+        latitud: document.getElementById('latitud'),
+        longitud: document.getElementById('longitud')
+    };
 
-        ciudades.forEach(function (c) {
-            if (String(c.pais_id) === paisId) {
-                var op = document.createElement('option');
-                op.value = c.id;
-                op.textContent = c.nombre;
-                selCiudad.appendChild(op);
-            }
-        });
-        mostrarMapa();
-    }
-
-    // Vista previa con el mapa embebido de OpenStreetMap (sin librerias).
-    function mostrarMapa() {
-        var ciudad = ciudades.filter(function (c) {
-            return String(c.id) === selCiudad.value;
-        })[0];
-        if (!ciudad) {
-            contenedorMapa.hidden = true;
-            iframe.removeAttribute('src');
-            return;
-        }
-        var lat = parseFloat(ciudad.latitud);
-        var lon = parseFloat(ciudad.longitud);
-        var bbox = [lon - 0.08, lat - 0.05, lon + 0.08, lat + 0.05].join('%2C');
-
-        iframe.src = 'https://www.openstreetmap.org/export/embed.html?bbox=' + bbox +
-            '&layer=mapnik&marker=' + lat + '%2C' + lon;
-        enlace.href = 'https://www.openstreetmap.org/?mlat=' + lat + '&mlon=' + lon +
-            '#map=12/' + lat + '/' + lon;
-        contenedorMapa.hidden = false;
-    }
-
-    selPais.addEventListener('change', cargarCiudades);
-    selCiudad.addEventListener('change', mostrarMapa);
-
+    // ── Vista previa de la foto ─────────────────────────
     inputFoto.addEventListener('change', function () {
         var archivo = inputFoto.files[0];
         if (!archivo) {
@@ -61,6 +26,126 @@
         preview.hidden = false;
     });
 
-    // Si el servidor devolvio el formulario con errores, la ciudad ya viene elegida.
-    mostrarMapa();
+    // ── Mapa (Leaflet + OpenStreetMap) ──────────────────
+    function mostrar(mensaje, esError) {
+        texto.textContent = mensaje;
+        texto.classList.toggle('ubicacion-error', !!esError);
+    }
+
+    function limpiarUbicacion() {
+        Object.keys(campos).forEach(function (k) {
+            campos[k].value = '';
+        });
+    }
+
+    form.addEventListener('submit', function (evento) {
+        if (!campos.latitud.value || !campos.longitud.value) {
+            evento.preventDefault();
+            mostrar('Elegí tu ubicación haciendo click en el mapa.', true);
+            contenedor.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+    });
+
+    if (typeof L === 'undefined') {
+        mostrar('No se pudo cargar el mapa. Revisá tu conexión y recargá la página.', true);
+        return;
+    }
+
+    var mapa = L.map(contenedor, {worldCopyJump: true}).setView([-38, -63], 4);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapa);
+
+    var marcador = null;
+    var temporizador = null;
+    var controlador = null;
+    var secuencia = 0;
+
+    function ponerMarcador(latlng) {
+        if (marcador === null) {
+            marcador = L.marker(latlng, {draggable: true}).addTo(mapa);
+            marcador.on('dragend', function () {
+                elegirPunto(marcador.getLatLng());
+            });
+        } else {
+            marcador.setLatLng(latlng);
+        }
+    }
+
+    function elegirPunto(latlng) {
+        latlng = latlng.wrap();
+        ponerMarcador(latlng);
+        limpiarUbicacion();
+        mostrar('Buscando ubicación…', false);
+
+        clearTimeout(temporizador);
+        temporizador = setTimeout(function () {
+            buscar(latlng);
+        }, 500);
+    }
+
+    function buscar(latlng) {
+        if (controlador) {
+            controlador.abort();
+        }
+        controlador = new AbortController();
+        var miBusqueda = ++secuencia;
+
+        var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&addressdetails=1' +
+            '&accept-language=es&lat=' + latlng.lat.toFixed(6) + '&lon=' + latlng.lng.toFixed(6);
+
+        fetch(url, {signal: controlador.signal, headers: {'Accept': 'application/json'}})
+            .then(function (respuesta) {
+                if (!respuesta.ok) {
+                    throw new Error('HTTP ' + respuesta.status);
+                }
+                return respuesta.json();
+            })
+            .then(function (datos) {
+                if (miBusqueda !== secuencia) {
+                    // Ya se eligio otro punto
+                    return;
+                }
+
+                var a = datos.address || {};
+                var pais = a.country;
+                var codigo = (a.country_code || '').toUpperCase();
+                // Si el punto no cae en una localidad, se usa la division administrativa mas cercana.
+                var ciudad = a.city || a.town || a.village || a.municipality ||
+                    a.county || a.state_district || a.state;
+
+                if (!pais || !codigo || !ciudad) {
+                    mostrar('Ese punto no pertenece a ningún país o ciudad. Elegí otro.', true);
+                    return;
+                }
+
+                campos.pais_codigo.value = codigo;
+                campos.pais.value = pais;
+                campos.ciudad.value = ciudad;
+                campos.latitud.value = latlng.lat.toFixed(6);
+                campos.longitud.value = latlng.lng.toFixed(6);
+                mostrar('Ubicación elegida: ' + ciudad + ', ' + pais, false);
+            })
+            .catch(function (error) {
+                if (error.name === 'AbortError' || miBusqueda !== secuencia) {
+                    return;
+                }
+                mostrar('No pudimos obtener la ubicación. Probá de nuevo.', true);
+            });
+    }
+
+    mapa.on('click', function (evento) {
+        elegirPunto(evento.latlng);
+    });
+
+    // Si el servidor devolvio el formulario con errores, se recupera el punto elegido.
+    var latPrevia = parseFloat(campos.latitud.value);
+    var lngPrevia = parseFloat(campos.longitud.value);
+    if (!isNaN(latPrevia) && !isNaN(lngPrevia)) {
+        var previo = L.latLng(latPrevia, lngPrevia);
+        ponerMarcador(previo);
+        mapa.setView(previo, 10);
+        mostrar('Ubicación elegida: ' + campos.ciudad.value + ', ' + campos.pais.value, false);
+    }
 })();
