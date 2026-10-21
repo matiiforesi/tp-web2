@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     nombre_completo VARCHAR(100) NOT NULL,
     anio_nacimiento SMALLINT UNSIGNED NOT NULL,
     sexo ENUM('M','F','N') NOT NULL DEFAULT 'N' COMMENT 'M=Masculino, F=Femenino, N=Prefiero no cargarlo',
-    pais_codigo CHAR(2) NOT NULL COMMENT 'ISO 3166-1 alfa-2, ej: AR. Se usa para agrupar por pais',
+    pais_codigo CHAR(2) NOT NULL,
     pais VARCHAR(80) NOT NULL,
     ciudad VARCHAR(100) NOT NULL,
     latitud DECIMAL(9,6) NOT NULL,
@@ -34,14 +34,30 @@ CREATE TABLE IF NOT EXISTS usuario (
     usuario VARCHAR(20) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     foto_perfil VARCHAR(255) NULL,
-    -- Se deja en 1 hasta implementar la validacion por mail.
-    cuenta_validada TINYINT(1) NOT NULL DEFAULT 1,
+    -- 0 hasta que el usuario active la cuenta.
+    cuenta_validada TINYINT(1) NOT NULL DEFAULT 0,
     fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     UNIQUE KEY uq_usuario_email (email),
     UNIQUE KEY uq_usuario_usuario (usuario),
     KEY idx_usuario_pais (pais_codigo),
     CONSTRAINT fk_usuario_rol FOREIGN KEY (rol_id) REFERENCES rol (id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- VERIFICACION DE CUENTA
+-- Guarda solo el hash del token. El token real viaja unicamente en el link del mail.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS verificacion_cuenta (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    usuario_id INT UNSIGNED NOT NULL,
+    token_hash CHAR(64) NOT NULL COMMENT 'Hex del token enviado por mail',
+    expira DATETIME NOT NULL,
+    enviado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_verificacion_token (token_hash),
+    KEY idx_verificacion_usuario (usuario_id),
+    CONSTRAINT fk_verificacion_usuario FOREIGN KEY (usuario_id) REFERENCES usuario (id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================
@@ -118,7 +134,7 @@ CREATE TABLE IF NOT EXISTS partida_pregunta (
     partida_id INT UNSIGNED NOT NULL,
     pregunta_id INT UNSIGNED NOT NULL,
     opcion_elegida_id INT UNSIGNED NULL,
-    correcta TINYINT(1) NULL COMMENT 'NULL = todavia sin responder',
+    correcta TINYINT(1) NULL COMMENT 'NULL = sin responder',
     fecha DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_pp_partida (partida_id),

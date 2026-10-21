@@ -3,6 +3,8 @@
 namespace app\controller;
 
 use app\model\UsuarioModel;
+use app\model\VerificacionCuentaModel;
+use app\service\VerificacionCuentaService;
 use ImageUpload;
 use PDOException;
 use Redirect;
@@ -13,11 +15,13 @@ class UsuarioController
 {
     private $model;
     private $render;
+    private $verificacion;
 
-    public function __construct($model, $render)
+    public function __construct($model, $render, VerificacionCuentaService $verificacion)
     {
         $this->model = $model;
         $this->render = $render;
+        $this->verificacion = $verificacion;
     }
 
     // GET /usuario/login
@@ -54,6 +58,16 @@ class UsuarioController
             $this->render->renderiza('login', [
                 'error' => 'Usuario o contraseña incorrectos.',
                 'usuario' => $usuario,
+            ]);
+            return;
+        }
+
+        // La contrasena es correcta, pero no se abre sesion hasta que valide la cuenta.
+        if ((int)$usuarioValido['cuenta_validada'] !== 1) {
+            $this->render->renderiza('login', [
+                'error' => 'Tu cuenta todavía no está activada. Revisá tu mail (también la carpeta de spam) y entrá al link que te enviamos.',
+                'usuario' => $usuario,
+                'cuentaPendiente' => true,
             ]);
             return;
         }
@@ -122,14 +136,14 @@ class UsuarioController
 
         try {
             $nombreFoto = ImageUpload::guardar($foto, $directorio);
-            $this->model->crear($datos, $nombreFoto);
+            $usuarioId = $this->model->crear($datos, $nombreFoto);
         } catch (Throwable $e) {
             if ($nombreFoto !== null) {
                 ImageUpload::eliminar($nombreFoto, $directorio);
             }
             \Log::error('Registro fallido: ' . $e->getMessage());
 
-            // 1062 = clave duplicada: otro registro se nos adelanto entre la validacion y el INSERT.
+            // 1062 = clave duplicada
             $duplicado = $e instanceof PDOException && ($e->errorInfo[1] ?? null) === 1062;
             $mensaje = $duplicado
                 ? 'El mail o el nombre de usuario ya están registrados.'
@@ -138,7 +152,15 @@ class UsuarioController
             return;
         }
 
-        $_SESSION['registro_exitoso'] = $datos['usuario'];
+        // Si el mail falla la cuenta se crea igual, el servicio lo registra en el log
+        // y se le indica al usuario que pida el reenvio del link.
+        $mailEnviado = $this->verificacion->enviarMail($usuarioId, $datos['email'], $datos['nombre_completo']);
+
+        $_SESSION['registro_exitoso'] = [
+            'usuario' => $datos['usuario'],
+            'email' => $datos['email'],
+            'mailEnviado' => $mailEnviado,
+        ];
         Redirect::to('/usuario/registroExitoso');
     }
 
@@ -148,10 +170,53 @@ class UsuarioController
         if (empty($_SESSION['registro_exitoso'])) {
             Redirect::to('/usuario/registro');
         }
-        $usuario = $_SESSION['registro_exitoso'];
+        $datos = $_SESSION['registro_exitoso'];
         unset($_SESSION['registro_exitoso']);
 
-        $this->render->renderiza('registroExitoso', ['usuario' => $usuario]);
+        $this->render->renderiza('registroExitoso', $datos);
+    }
+
+    // GET /usuario/validar?token=...
+    public function validar()
+    {
+        $token = Request::get('token', '');
+        $resultado = is_string($token)
+            ? $this->verificacion->validar($token)
+            : VerificacionCuentaModel::INVALIDO;
+
+        $this->render->renderiza('validar', [
+            'exito' => $resultado === VerificacionCuentaModel::OK,
+            'vencido' => $resultado === VerificacionCuentaModel::VENCIDO,
+            'invalido' => $resultado === VerificacionCuentaModel::INVALIDO,
+        ]);
+    }
+
+    // POST /usuario/reenviar
+    public function reenviar()
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Redirect::to('/usuario/login');
+        }
+
+        $usuario = trim((string)Request::post('usuario', ''));
+
+        if ($usuario !== '') {
+            try {
+                $pendiente = $this->model->buscarPendientePorUsuario($usuario);
+                if ($pendiente !== null) {
+                    $this->verificacion->reenviar((int)$pendiente['id'], $pendiente['email'], $pendiente['nombre_completo']);
+                }
+            } catch (Throwable $e) {
+                \Log::error('Reenvio de mail de activacion fallido: ' . $e->getMessage());
+            }
+        }
+
+        $this->render->renderiza('login', [
+            'info' => 'Te enviamos un mail nuevo para activar tu cuenta. '
+                . 'Puede tardar unos minutos; revisá también la carpeta de spam. '
+                . 'Si sigue fallando, esperá unos minutos antes de volver a intentar.',
+            'usuario' => $usuario,
+        ]);
     }
 
     private function leerDatosDelFormulario(): array

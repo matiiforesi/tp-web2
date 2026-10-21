@@ -2,7 +2,19 @@
     <section class="tarjeta">
         <span class="etiqueta">Cuenta creada</span>
         <h1>¡Bienvenido, {{usuario}}!</h1>
-        <p class="mensaje">Tu cuenta se creó correctamente.</p>
-        <a class="boton" href="/usuario/login">Ir a Iniciar Sesión</a>
+        {{#mailEnviado}}
+            <p class="mensaje">Te enviamos un correo a <strong>{{email}}</strong>. Activá tu cuenta desde el link que
+                contiene para poder iniciar sesión.</p>
+            <p class="nota">¿No te llegó? Revisá la carpeta de spam. Si sigue sin aparecer, podes pedir un reenvío
+                desde <a href="/usuario/login">Iniciar sesión</a>.</p>
+        {{/mailEnviado}}
+        {{^mailEnviado}}
+            <div class="errores" role="alert">
+                Tu cuenta se creó, pero no pudimos enviarte el correo de activación a <strong>{{email}}</strong>.
+            </div>
+            <p class="mensaje">Probá pedir que te lo reenviemos entrando a <a href="/usuario/login">Iniciar sesión</a>.
+            </p>
+        {{/mailEnviado}}
+
     </section>
 </main>

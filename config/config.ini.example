@@ -2,3 +2,17 @@ db_host = localhost
 db_user = root
 db_pass =
 db_name = juego_preguntas
+
+; URL base del sitio, sin barra final.
+app_url = http://localhost
+
+; mail_modo = smtp -> envia de verdad
+; mail_modo = log  -> escribe el mail con el link en log/ (solo para desarrollo local)
+mail_modo = smtp
+mail_host = smtp.gmail.com
+mail_port = 587
+mail_user = cuenta@gmail.com
+mail_pass = ""
+mail_from = cuenta@gmail.com
+mail_from_nombre = Juego de Preguntas
+

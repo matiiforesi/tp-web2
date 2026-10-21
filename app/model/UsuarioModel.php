@@ -97,6 +97,17 @@ class UsuarioModel
         );
     }
 
+    /** Reenvio del mail de activacion; null si no existe o si la cuenta ya esta validada. */
+    public function buscarPendientePorUsuario(string $usuario)
+    {
+        return $this->db->queryOne(
+            "SELECT id, email, nombre_completo
+             FROM usuario
+             WHERE usuario = ? AND cuenta_validada = 0",
+            [$usuario]
+        );
+    }
+
     public function autenticar(string $usuario, string $password)
     {
         $u = $this->buscarPorUsuario($usuario);

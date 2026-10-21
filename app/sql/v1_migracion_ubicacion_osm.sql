@@ -37,7 +37,7 @@ UPDATE usuario u
     END;
 
 ALTER TABLE usuario
-    MODIFY pais_codigo CHAR(2) NOT NULL COMMENT 'ISO 3166-1 alfa-2, ej: AR. Se usa para agrupar por pais',
+    MODIFY pais_codigo CHAR(2) NOT NULL,
     MODIFY pais VARCHAR(80) NOT NULL,
     MODIFY ciudad VARCHAR(100) NOT NULL,
     MODIFY latitud DECIMAL(9,6) NOT NULL,

@@ -1,0 +1,24 @@
+<main class="contenedor">
+    <section class="tarjeta">
+        {{#exito}}
+            <span class="etiqueta">Cuenta activada</span>
+            <h1>¡Listo!</h1>
+            <p class="mensaje">Tu cuenta quedó activada. Ya podés iniciar sesión.</p>
+        {{/exito}}
+        {{#vencido}}
+            <span class="etiqueta">Link vencido</span>
+            <h1>El link venció</h1>
+            <p class="mensaje">Este link de activación ya no es válido porque pasaron más de 24 horas. Iniciá sesión con
+                tu usuario y contraseña y pedí que te enviemos uno nuevo.</p>
+        {{/vencido}}
+        {{#invalido}}
+            <span class="etiqueta">Link inválido</span>
+            <h1>No pudimos activar tu cuenta</h1>
+            <p class="mensaje">El link no es válido o ya fue usado. Si ya activaste tu cuenta, podés iniciar sesión. Si
+                no, iniciá sesión y pedí que te enviemos un mail nuevo.</p>
+        {{/invalido}}
+        <div class="acciones">
+            <a class="boton" href="/usuario/login">Ir a Iniciar Sesión</a>
+        </div>
+    </section>
+</main>
