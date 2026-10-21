@@ -13,8 +13,7 @@
             </div>
         {{/hayErrores}}
 
-        <form id="form-registro" class="formulario" action="/usuario/registrar" method="POST"
-              enctype="multipart/form-data" novalidate>
+        <form id="form-registro" class="formulario" action="/usuario/registrar" method="POST" novalidate>
             <div class="campo">
                 <label for="nombre_completo">Nombre completo</label>
                 <input type="text" id="nombre_completo" name="nombre_completo" value="{{datos.nombre_completo}}"
@@ -79,9 +78,11 @@
 
             <div class="campo">
                 <label for="foto_perfil">Foto de perfil</label>
-                <input type="file" id="foto_perfil" name="foto_perfil" accept="image/jpeg,image/png,image/webp"
-                       required>
-                <small>JPG, PNG o WEBP, hasta 2 MB.</small>
+                <!-- Sin "name": el archivo no se envia. El JS lo reduce y lo manda como texto en foto_base64. -->
+                <input type="file" id="foto_perfil" accept="image/jpeg,image/png,image/webp">
+                <input type="hidden" id="foto_base64" name="foto_base64">
+                <small>JPG, PNG o WEBP. Se reduce automáticamente antes de enviarla.</small>
+                <p id="foto-mensaje" class="ubicacion-texto" aria-live="polite"></p>
                 <img id="foto-preview" class="foto-preview" alt="Vista previa de la foto de perfil" hidden>
             </div>
 

@@ -15,15 +15,79 @@
         longitud: document.getElementById('longitud')
     };
 
-    // ── Vista previa de la foto ─────────────────────────
+    // ── Foto de perfil ──────────────────────────────────
+    // El hosting bloquea los envios multipart/form-data (403). Por eso la foto se reduce y
+    // se comprime aca y viaja como texto base64 en un campo oculto. El servidor la valida igual.
+    var campoFoto = document.getElementById('foto_base64');
+    var mensajeFoto = document.getElementById('foto-mensaje');
+    var LADO_MAXIMO = 512;
+    var BYTES_MAXIMOS_ORIGINAL = 15 * 1024 * 1024;
+    var CHARS_MAXIMOS = 700000; // ~500 KB de imagen: muy por debajo de lo que acepta el servidor
+
+    function mostrarFoto(mensaje, esError) {
+        mensajeFoto.textContent = mensaje;
+        mensajeFoto.classList.toggle('ubicacion-error', !!esError);
+    }
+
+    function limpiarFoto() {
+        campoFoto.value = '';
+        preview.hidden = true;
+    }
+
+    function comprimir(imagen, ladoMaximo) {
+        var escala = Math.min(1, ladoMaximo / Math.max(imagen.width, imagen.height));
+        var lienzo = document.createElement('canvas');
+        lienzo.width = Math.max(1, Math.round(imagen.width * escala));
+        lienzo.height = Math.max(1, Math.round(imagen.height * escala));
+
+        var ctx = lienzo.getContext('2d');
+        ctx.fillStyle = '#ffffff'; // JPEG no tiene transparencia
+        ctx.fillRect(0, 0, lienzo.width, lienzo.height);
+        ctx.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+
+        var calidades = [0.85, 0.7, 0.55];
+        for (var i = 0; i < calidades.length; i++) {
+            var datos = lienzo.toDataURL('image/jpeg', calidades[i]);
+            if (datos.length <= CHARS_MAXIMOS) {
+                return datos;
+            }
+        }
+        return null;
+    }
+
     inputFoto.addEventListener('change', function () {
+        limpiarFoto();
         var archivo = inputFoto.files[0];
         if (!archivo) {
-            preview.hidden = true;
+            mostrarFoto('', false);
             return;
         }
-        preview.src = URL.createObjectURL(archivo);
-        preview.hidden = false;
+        if (archivo.size > BYTES_MAXIMOS_ORIGINAL) {
+            mostrarFoto('La foto es demasiado grande. Elegí una de menos de 15 MB.', true);
+            return;
+        }
+
+        mostrarFoto('Procesando foto…', false);
+        var url = URL.createObjectURL(archivo);
+        var imagen = new Image();
+
+        imagen.onload = function () {
+            URL.revokeObjectURL(url);
+            var resultado = comprimir(imagen, LADO_MAXIMO) || comprimir(imagen, 320);
+            if (!resultado) {
+                mostrarFoto('No pudimos reducir la foto. Probá con otra.', true);
+                return;
+            }
+            campoFoto.value = resultado;
+            preview.src = resultado;
+            preview.hidden = false;
+            mostrarFoto('Foto lista.', false);
+        };
+        imagen.onerror = function () {
+            URL.revokeObjectURL(url);
+            mostrarFoto('No pudimos leer ese archivo como imagen. Probá con un JPG, PNG o WEBP.', true);
+        };
+        imagen.src = url;
     });
 
     // ── Mapa (Leaflet + OpenStreetMap) ──────────────────
@@ -39,6 +103,12 @@
     }
 
     form.addEventListener('submit', function (evento) {
+        if (!campoFoto.value) {
+            evento.preventDefault();
+            mostrarFoto('Elegí una foto de perfil.', true);
+            inputFoto.scrollIntoView({behavior: 'smooth', block: 'center'});
+            return;
+        }
         if (!campos.latitud.value || !campos.longitud.value) {
             evento.preventDefault();
             mostrar('Elegí tu ubicación haciendo click en el mapa.', true);

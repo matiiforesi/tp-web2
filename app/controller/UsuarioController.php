@@ -121,10 +121,11 @@ class UsuarioController
         }
 
         $datos = $this->leerDatosDelFormulario();
-        $foto = $_FILES['foto_perfil'] ?? null;
 
         $errores = $this->model->validarRegistro($datos);
-        $errores = array_merge($errores, ImageUpload::validar($foto));
+        // La foto llega como texto base64 (el hosting bloquea los envios multipart).
+        [$erroresFoto, $bytesFoto] = ImageUpload::decodificarBase64(Request::post('foto_base64', ''));
+        $errores = array_merge($errores, $erroresFoto);
 
         if (!empty($errores)) {
             $this->mostrarFormulario($datos, $errores);
@@ -135,7 +136,7 @@ class UsuarioController
         $nombreFoto = null;
 
         try {
-            $nombreFoto = ImageUpload::guardar($foto, $directorio);
+            $nombreFoto = ImageUpload::guardarBytes($bytesFoto, $directorio);
             $usuarioId = $this->model->crear($datos, $nombreFoto);
         } catch (Throwable $e) {
             if ($nombreFoto !== null) {

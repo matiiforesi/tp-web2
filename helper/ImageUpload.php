@@ -1,50 +1,68 @@
 <?php
 
+/**
+ * La foto llega como base64 dentro del formulario, no como archivo multipart:
+ * InfinityFree bloquea los envios multipart/form-data con un 403.
+ * El navegador ya la reduce y comprime antes de enviarla, pero aca se valida todo de nuevo:
+ * se decodifica, se controla el tamano y se verifica el contenido real (no la extension).
+ */
 class ImageUpload
 {
-    const MAX_BYTES = 2097152; // 2 MB
+    // 2 MB ya decodificada
+    const MAX_BYTES = 2097152;
+    // Evita decodificar textos enormes
+    const MAX_BASE64_CHARS = 3000000;
     const TIPOS = [
         'image/jpeg' => 'jpg',
-        'image/png' => 'png',
+        'image/png'  => 'png',
         'image/webp' => 'webp',
     ];
 
-    /** @return string[] lista de errores (vacia si el archivo es valido) */
-    public static function validar($archivo, $obligatorio = true): array
+    /**
+     * Acepta "data:image/jpeg;base64,XXXX" o el base64 solo.
+     * @return array [lista de errores, bytes de la imagen o null]
+     */
+    public static function decodificarBase64($dato): array
     {
-        if (!is_array($archivo) || ($archivo['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-            return $obligatorio ? ['La foto de perfil es obligatoria.'] : [];
+        $dato = is_string($dato) ? trim($dato) : '';
+        if ($dato === '') {
+            return [['La foto de perfil es obligatoria.'], null];
         }
 
-        if ($archivo['error'] === UPLOAD_ERR_INI_SIZE || $archivo['error'] === UPLOAD_ERR_FORM_SIZE) {
-            return ['La foto no puede pesar más de 2 MB.'];
-        }
-        if ($archivo['error'] !== UPLOAD_ERR_OK || !is_uploaded_file($archivo['tmp_name'])) {
-            return ['No se pudo subir la foto. Intentá de nuevo.'];
-        }
-        if ($archivo['size'] > self::MAX_BYTES) {
-            return ['La foto no puede pesar más de 2 MB.'];
+        $dato = preg_replace('#^data:[^;,]*;base64,#i', '', $dato);
+        // Si algun intermediario convirtio los "+" en espacios, se restauran.
+        $dato = str_replace(' ', '+', $dato);
+
+        if (strlen($dato) > self::MAX_BASE64_CHARS) {
+            return [['La foto no puede pesar más de 2 MB.'], null];
         }
 
-        $mime = self::detectarMime($archivo['tmp_name']);
-        if (!isset(self::TIPOS[$mime]) || @getimagesize($archivo['tmp_name']) === false) {
-            return ['La foto debe ser una imagen JPG, PNG o WEBP.'];
+        $bytes = base64_decode($dato, true);
+        if ($bytes === false || $bytes === '') {
+            return [['No se pudo leer la foto. Intentá de nuevo.'], null];
+        }
+        if (strlen($bytes) > self::MAX_BYTES) {
+            return [['La foto no puede pesar más de 2 MB.'], null];
         }
 
-        return [];
+        $mime = self::detectarMime($bytes);
+        if (!isset(self::TIPOS[$mime]) || @getimagesizefromstring($bytes) === false) {
+            return [['La foto debe ser una imagen JPG, PNG o WEBP.'], null];
+        }
+
+        return [[], $bytes];
     }
 
-    /** Guarda la imagen ya validada con un nombre aleatorio y devuelve ese nombre. */
-    public static function guardar($archivo, $directorio): string
+    /** Guarda los bytes ya validados con un nombre aleatorio y devuelve ese nombre. */
+    public static function guardarBytes(string $bytes, string $directorio): string
     {
         if (!is_dir($directorio) && !mkdir($directorio, 0755, true)) {
             throw new RuntimeException('No se pudo crear el directorio de subidas.');
         }
 
-        $extension = self::TIPOS[self::detectarMime($archivo['tmp_name'])];
-        $nombre = bin2hex(random_bytes(16)) . '.' . $extension;
+        $nombre = bin2hex(random_bytes(16)) . '.' . self::TIPOS[self::detectarMime($bytes)];
 
-        if (!move_uploaded_file($archivo['tmp_name'], rtrim($directorio, '/') . '/' . $nombre)) {
+        if (file_put_contents(rtrim($directorio, '/') . '/' . $nombre, $bytes) === false) {
             throw new RuntimeException('No se pudo guardar la foto.');
         }
 
@@ -59,9 +77,9 @@ class ImageUpload
         }
     }
 
-    private static function detectarMime($ruta): string
+    private static function detectarMime(string $bytes): string
     {
         $finfo = new finfo(FILEINFO_MIME_TYPE);
-        return (string)$finfo->file($ruta);
+        return (string) $finfo->buffer($bytes);
     }
 }
