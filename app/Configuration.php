@@ -4,6 +4,7 @@ namespace app;
 
 use app\controller\GrupoController;
 use app\controller\UsuarioController;
+use app\controller\HomeController;
 use app\model\GrupoModel;
 use app\model\UsuarioModel;
 use app\model\VerificacionCuentaModel;
@@ -39,6 +40,13 @@ class Configuration
             $this->getUsuarioModel(),
             $this->getRender(),
             $this->getVerificacionCuentaService()
+        );
+    }
+
+    public function getHomeController()
+    {
+        return new HomeController(
+            $this->getRender()
         );
     }
 
@@ -101,6 +109,6 @@ class Configuration
 
     public function getRouter()
     {
-        return new Router($this, "grupo", "show");
+        return new Router($this, "home", "show");
     }
 }

@@ -1,0 +1,41 @@
+<main class="contenedor">
+
+    <section class="tarjeta" style="text-align: center;">
+        <span class="etiqueta">Bienvenido</span>
+        <h1>{{titulo}}</h1>
+        <p class="mensaje">{{subtitulo}}</p>
+
+        {{#estaLogueado}}
+            <h3>¡Hola de nuevo, {{nombreUsuario}}!</h3>
+            <a href="/usuario/lobby" class="boton">Ir a Jugar</a>
+        {{/estaLogueado}}
+
+        {{^estaLogueado}}
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
+                <a href="/usuario/registro" class="boton">Crear Cuenta</a>
+                <a href="index.php?controller=usuario&method=login" class="boton boton-secundario">Iniciar Sesión</a>
+            </div>
+        {{/estaLogueado}}
+    </section>
+
+    <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; margin-top: 20px;">
+        <div class="tarjeta" style="flex: 1; min-width: 250px; text-align: center;">
+            <h2 style="font-size: 2rem;">🎯</h2>
+            <h3>Respondé Preguntas</h3>
+            <p class="nota">Preguntas de múltiple opción de distintas categorías.</p>
+        </div>
+
+        <div class="tarjeta" style="flex: 1; min-width: 250px; text-align: center;">
+            <h2 style="font-size: 2rem;">🏆</h2>
+            <h3>Sumá Puntos</h3>
+            <p class="nota">Cada respuesta correcta suma. Competí por el primer puesto.</p>
+        </div>
+
+        <div class="tarjeta" style="flex: 1; min-width: 250px; text-align: center;">
+            <h2 style="font-size: 2rem;">📊</h2>
+            <h3>Mirá el Ranking</h3>
+            <p class="nota">Conocé tu posición en el ranking de jugadores.</p>
+        </div>
+    </div>
+
+</main>
