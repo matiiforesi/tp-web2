@@ -6,14 +6,21 @@
         <p class="mensaje">{{subtitulo}}</p>
 
         {{#estaLogueado}}
-            <h3>¡Hola de nuevo, {{nombreUsuario}}!</h3>
-            <a href="/usuario/lobby" class="boton">Ir a Jugar</a>
+            <div style="margin-top: 1.5rem;">
+                <h3>¡Hola, {{nombreUsuario}}!</h3>
+                <p class="nota">Puntaje actual: 0 pts (Próximamente)</p>
+
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 1rem; flex-wrap: wrap;">
+                    <a href="/" class="boton">Nueva Partida</a>
+                    <a href="/" class="boton boton-secundario">Ver Ranking</a>
+                </div>
+            </div>
         {{/estaLogueado}}
 
         {{^estaLogueado}}
             <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
                 <a href="/usuario/registro" class="boton">Crear Cuenta</a>
-                <a href="index.php?controller=usuario&method=login" class="boton boton-secundario">Iniciar Sesión</a>
+                <a href="/usuario/login" class="boton boton-secundario">Iniciar Sesión</a>
             </div>
         {{/estaLogueado}}
     </section>
