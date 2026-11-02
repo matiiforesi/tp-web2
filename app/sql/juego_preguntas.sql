@@ -143,3 +143,233 @@ CREATE TABLE IF NOT EXISTS partida_pregunta (
     CONSTRAINT fk_pp_pregunta FOREIGN KEY (pregunta_id) REFERENCES pregunta (id),
     CONSTRAINT fk_pp_opcion   FOREIGN KEY (opcion_elegida_id) REFERENCES opcion (id)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================
+-- PREGUNTAS
+-- ============================================================
+
+-- Categoría 1: Historia
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (1,
+            '¿Quién fue el primer presidente de la Nación Argentina?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Bernardino Rivadavia', 1),
+           (@id_p, 'Julio Argentino Roca', 0),
+           (@id_p, 'Domingo Faustino Sarmiento', 0),
+           (@id_p, 'Bartolomé Mitre', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (1,
+            '¿En qué año llegó el hombre a la Luna?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, '1969', 1),
+           (@id_p, '1959', 0),
+           (@id_p, '1972', 0),
+           (@id_p, '1965', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (1,
+            '¿Quién pintó la Mona Lisa?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Pablo Picasso', 0),
+           (@id_p, 'Vincent van Gogh', 0),
+           (@id_p, 'Leonardo da Vinci', 1),
+           (@id_p, 'Miguel Ángel', 0);
+
+-- Categoría 2: Deportes
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (2,
+            '¿Qué país ganó el Mundial de Fútbol de 2022?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Francia', 0),
+           (@id_p, 'Argentina', 1),
+           (@id_p, 'Brasil', 0),
+           (@id_p, 'Alemania', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (2,
+            '¿Cuántos jugadores tiene un equipo de fútbol en la cancha?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, '9', 0),
+           (@id_p, '10', 0),
+           (@id_p, '11', 1),
+           (@id_p, '12', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (2,
+            '¿En qué deporte se utiliza una raqueta y un volante?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Tenis', 0),
+           (@id_p, 'Pádel', 0),
+           (@id_p, 'Bádminton', 1),
+           (@id_p, 'Squash', 0);
+
+-- Categoría 3: Cultura
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (3,
+            '¿Quién escribió "El Quijote"?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Gabriel García Márquez', 0),
+           (@id_p, 'Miguel de Cervantes', 1),
+           (@id_p, 'Jorge Luis Borges', 0),
+           (@id_p, 'Pablo Neruda', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (3,
+            '¿Cuál es el idioma más hablado del mundo como lengua materna?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Inglés', 0),
+           (@id_p, 'Español', 0),
+           (@id_p, 'Mandarín', 1),
+           (@id_p, 'Hindi', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (3,
+            '¿Quién es el autor de la famosa obra "La noche estrellada"?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Claude Monet', 0),
+           (@id_p, 'Pablo Picasso', 0),
+           (@id_p, 'Vincent van Gogh', 1),
+           (@id_p, 'Salvador Dalí', 0);
+
+-- Categoría 4: Ciencia
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (4,
+            '¿Cuál es el planeta más grande del sistema solar?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Marte', 0),
+           (@id_p, 'Júpiter', 1),
+           (@id_p, 'Tierra', 0),
+           (@id_p, 'Saturno', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (4,
+            '¿Cuál es el símbolo químico del oro?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Ag', 0),
+           (@id_p, 'Au', 1),
+           (@id_p, 'Fe', 0),
+           (@id_p, 'Cu', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (4,
+            '¿Qué gas respiran las plantas para realizar la fotosíntesis?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Oxígeno', 0),
+           (@id_p, 'Nitrógeno', 0),
+           (@id_p, 'Dióxido de carbono', 1),
+           (@id_p, 'Hidrógeno', 0);
+
+-- Categoría 5: Geografía
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (5,
+            '¿Cuál es el río más largo del mundo?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Nilo', 1),
+           (@id_p, 'Amazonas', 0),
+           (@id_p, 'Misisipi', 0),
+           (@id_p, 'Yangtsé', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (5,
+            '¿Cuál es la capital de Francia?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Londres', 0),
+           (@id_p, 'París', 1),
+           (@id_p, 'Berlín', 0),
+           (@id_p, 'Madrid', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (5,
+            '¿En qué continente se encuentra Egipto?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Asia', 0),
+           (@id_p, 'Europa', 0),
+           (@id_p, 'África', 1),
+           (@id_p, 'Oceanía', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (5,
+            '¿Cuál es el océano más grande del mundo?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Atlántico', 0),
+           (@id_p, 'Índico', 0),
+           (@id_p, 'Pacífico', 1),
+           (@id_p, 'Ártico', 0);
+
+-- Categoría 6: Entretenimiento
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (6,
+            '¿Quién es el protagonista de la saga "Piratas del Caribe"?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Will Smith', 0),
+           (@id_p, 'Johnny Depp', 1),
+           (@id_p, 'Brad Pitt', 0),
+           (@id_p, 'Tom Cruise', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (6,
+            '¿En qué ciudad ficticia vive Batman?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Metrópolis', 0),
+           (@id_p, 'Gotham City', 1),
+           (@id_p, 'Ciudad Estrella', 0),
+           (@id_p, 'Central City', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (6,
+            '¿Qué banda británica compuso la canción "Hey Jude"?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'The Rolling Stones', 0),
+           (@id_p, 'Queen', 0),
+           (@id_p, 'The Beatles', 1),
+           (@id_p, 'Pink Floyd', 0);
+
+    INSERT INTO pregunta (categoria_id, enunciado, estado)
+    VALUES (6,
+            '¿Cuál es el nombre del ratón más famoso de Disney?',
+            'activa');
+    SET @id_p = LAST_INSERT_ID();
+    INSERT INTO opcion (pregunta_id, texto, es_correcta)
+    VALUES (@id_p, 'Jerry', 0),
+           (@id_p, 'Mickey Mouse', 1),
+           (@id_p, 'Speedy Gonzales', 0),
+           (@id_p, 'Topo Gigio', 0);
