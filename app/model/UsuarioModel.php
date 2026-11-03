@@ -148,4 +148,11 @@ class UsuarioModel
         );
         return (int)$this->db->lastInsertId();
     }
+
+    public function getPuntajeTotal($usuarioId)
+    {
+        $sql = "SELECT puntaje_total FROM usuario WHERE id = ?";
+        $resultado = $this->db->queryOne($sql, [$usuarioId]);
+        return $resultado ? (int)$resultado['puntaje_total'] : 0;
+    }
 }

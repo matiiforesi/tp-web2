@@ -1,0 +1,18 @@
+<main class="contenedor">
+    <section class="tarjeta" style="border-top: 10px solid {{pregunta.categoria_color}};">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="etiqueta">{{pregunta.categoria_nombre}}</span>
+            <span class="etiqueta" style="color: #333;">Puntos: {{puntajeTotal}}</span>
+        </div>
+
+        <h1 style="margin-top: 20px;">{{pregunta.enunciado}}</h1>
+
+        <form action="/partida/responder" method="POST" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+            {{#pregunta.opciones}}
+                <button type="submit" name="opcion_id" value="{{id}}" class="boton boton-secundario" style="text-align: left; padding: 15px;">
+                    {{texto}}
+                </button>
+            {{/pregunta.opciones}}
+        </form>
+    </section>
+</main>

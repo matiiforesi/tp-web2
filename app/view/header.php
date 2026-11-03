@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Página inicial del Grupo 2.">
     <title>Juego de Preguntas</title>
-    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/tp-web2/public/css/style.css">
 </head>
 <body>
 

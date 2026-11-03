@@ -13,6 +13,10 @@ class HomeController
 
     public function show()
     {
+        if (isset($_SESSION['usuario_id'])) {
+            \Redirect::to('/usuario/lobby');
+        }
+
         $data = [
             'titulo' => '¡Bienvenido al Juego de Preguntas!',
             'subtitulo' => 'Demostrá cuánto sabés, sumá puntos y competí por el primer puesto del ranking.',

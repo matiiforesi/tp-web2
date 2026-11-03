@@ -87,8 +87,11 @@ class UsuarioController
             Redirect::to('/usuario/login');
         }
 
+        $puntajeTotal = $this->model->getPuntajeTotal($_SESSION['usuario_id']);
+
         $this->render->renderiza('lobby', [
             'usuario' => $_SESSION['usuario'],
+            'puntajeTotal' => $puntajeTotal,
         ]);
     }
 
