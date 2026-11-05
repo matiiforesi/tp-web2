@@ -1,4 +1,7 @@
 <main class="contenedor">
+    {{#aviso}}
+        <div class="errores" role="alert">{{aviso}}</div>
+    {{/aviso}}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
             <h2 style="margin: 0; color: #243b53;">¡Hola, {{usuario}}!</h2>
@@ -8,15 +11,19 @@
 
     <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
 
-        <section class="tarjeta" style="flex: 2; min-width: 300px; text-align: center; background: linear-gradient(135deg, #243b53 0%, #356a9a 100%); color: white; border: none;">
+        <section class="tarjeta"
+                 style="flex: 2; min-width: 300px; text-align: center; background: linear-gradient(135deg, #243b53 0%, #356a9a 100%); color: white; border: none;">
             <span class="etiqueta" style="color: #a5c3e3;">Tu Progreso</span>
             <h1 style="color: white; font-size: 3rem; margin: 0.5rem 0;">{{puntajeTotal}} PTS</h1>
             <p style="color: #dbe4ef; margin-bottom: 2rem;">Puntaje acumulado total</p>
 
-            <a href="/partida/jugar" class="boton" style="background: #fff; color: #243b53; font-size: 1.2rem; padding: 1rem 2rem;">▶ Jugar Nueva Partida</a>
+            <a href="/partida/nueva" class="boton"
+               style="background: #fff; color: #243b53; font-size: 1.2rem; padding: 1rem 2rem;">▶ Jugar Nueva
+                Partida</a>
         </section>
 
-        <section class="tarjeta" style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        <section class="tarjeta"
+                 style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
             <h2 style="font-size: 3rem; margin: 0;">🏆</h2>
             <h3>Ranking Global</h3>
             <p class="nota" style="margin-bottom: 1.5rem;">Mirá quién lidera la tabla</p>
@@ -25,9 +32,34 @@
 
     </div>
 
-     <div class="tarjeta" style="margin-top: 2rem; text-align: center;">
-        <h3 style="border-bottom: 1px solid #dbe3ed; padding-bottom: 0.5rem;">Tus últimas partidas</h3>
-        <p class="nota" style="margin-top: 1rem;">Todavía no jugaste ninguna partida. ¡Hacé clic en Jugar para empezar!</p>
+    <div class="tarjeta" style="margin-top: 2rem;">
+        <h3 style="border-bottom: 1px solid #dbe3ed; padding-bottom: 0.5rem; text-align: center;">Tus últimas
+            partidas</h3>
+
+        {{#hayPartidas}}
+            <div class="tabla-scroll">
+                <table class="tabla">
+                    <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th class="col-puntaje">Resultado</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#partidas}}
+                        <tr>
+                            <td>{{fecha}}</td>
+                            <td class="col-puntaje"><strong>{{puntos}}</strong> {{etiquetaPuntos}}</td>
+                        </tr>
+                    {{/partidas}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hayPartidas}}
+        {{^hayPartidas}}
+            <p class="nota" style="margin-top: 1rem; text-align: center;">Todavía no jugaste ninguna partida. ¡Hacé clic
+                en Jugar para empezar!</p>
+        {{/hayPartidas}}
     </div>
 
 </main>

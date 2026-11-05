@@ -16,12 +16,14 @@ class UsuarioController
     private $model;
     private $render;
     private $verificacion;
+    private $partidas;
 
-    public function __construct($model, $render, VerificacionCuentaService $verificacion)
+    public function __construct($model, $render, VerificacionCuentaService $verificacion, $partidas)
     {
         $this->model = $model;
         $this->render = $render;
         $this->verificacion = $verificacion;
+        $this->partidas = $partidas;
     }
 
     // GET /usuario/login
@@ -87,11 +89,21 @@ class UsuarioController
             Redirect::to('/usuario/login');
         }
 
-        $puntajeTotal = $this->model->getPuntajeTotal($_SESSION['usuario_id']);
+        $usuarioId = (int)$_SESSION['usuario_id'];
+
+        // Detecta el abandono en solo /partida/jugar y /partida/nueva para que un
+        // pedido suelto no pueda terminar el juego.
+        $aviso = $_SESSION['aviso_lobby'] ?? null;
+        unset($_SESSION['aviso_lobby']);
+
+        $partidas = $this->partidas->ultimasPartidas($usuarioId, 10);
 
         $this->render->renderiza('lobby', [
+            'aviso' => $aviso,
             'usuario' => $_SESSION['usuario'],
-            'puntajeTotal' => $puntajeTotal,
+            'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
+            'partidas' => $partidas,
+            'hayPartidas' => !empty($partidas),
         ]);
     }
 

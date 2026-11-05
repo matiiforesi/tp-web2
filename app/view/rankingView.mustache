@@ -1,0 +1,42 @@
+<main class="contenedor">
+    <section class="tarjeta">
+        <span class="etiqueta">Ranking global</span>
+        <h1>🏆 Mejores jugadores</h1>
+        <p class="mensaje">Puntaje total acumulado de todas las partidas.</p>
+
+        {{#hayJugadores}}
+            <div class="tabla-scroll">
+                <table class="tabla">
+                    <thead>
+                    <tr>
+                        <th class="col-posicion">#</th>
+                        <th>Jugador</th>
+                        <th>País</th>
+                        <th class="col-puntaje">Puntaje</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#jugadores}}
+                        <tr class="{{#esUsuarioActual}}fila-yo{{/esUsuarioActual}}">
+                            <td class="col-posicion">{{#medalla}}{{medalla}}{{/medalla}}{{^medalla}}{{posicion}}{{/medalla}}</td>
+                            {{! Cuando exista el perfil publico, el nombre del jugador pasa a ser un link a su perfil }}
+                            <td>{{usuario}}{{#esUsuarioActual}} <span class="etiqueta-yo">TÚ</span>{{/esUsuarioActual}}
+                            </td>
+                            <td>{{pais}}</td>
+                            <td class="col-puntaje"><strong>{{puntaje}}</strong></td>
+                        </tr>
+                    {{/jugadores}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hayJugadores}}
+        {{^hayJugadores}}
+            <p class="nota">Todavía nadie sumó puntos. ¡Sé el primero en jugar!</p>
+        {{/hayJugadores}}
+
+        <div class="acciones">
+            <a href="/partida/nueva" class="boton">▶ Jugar</a>
+            <a href="/usuario/lobby" class="boton boton-secundario">Volver al lobby</a>
+        </div>
+    </section>
+</main>

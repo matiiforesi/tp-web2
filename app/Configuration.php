@@ -5,7 +5,12 @@ namespace app;
 use app\controller\GrupoController;
 use app\controller\UsuarioController;
 use app\controller\HomeController;
+use app\controller\PartidaController;
+use app\controller\RankingController;
 use app\model\GrupoModel;
+use app\model\PartidaModel;
+use app\model\PreguntaModel;
+use app\model\RankingModel;
 use app\model\UsuarioModel;
 use app\model\VerificacionCuentaModel;
 use app\service\VerificacionCuentaService;
@@ -39,7 +44,25 @@ class Configuration
         return new UsuarioController(
             $this->getUsuarioModel(),
             $this->getRender(),
-            $this->getVerificacionCuentaService()
+            $this->getVerificacionCuentaService(),
+            $this->getPartidaModel()
+        );
+    }
+
+    public function getPartidaController()
+    {
+        return new PartidaController(
+            new PreguntaModel($this->getDatabase()),
+            $this->getPartidaModel(),
+            $this->getRender()
+        );
+    }
+
+    public function getRankingController()
+    {
+        return new RankingController(
+            new RankingModel($this->getDatabase()),
+            $this->getRender()
         );
     }
 
@@ -59,6 +82,11 @@ class Configuration
     private function getUsuarioModel()
     {
         return new UsuarioModel($this->getDatabase());
+    }
+
+    private function getPartidaModel()
+    {
+        return new PartidaModel($this->getDatabase());
     }
 
     private function getVerificacionCuentaService()

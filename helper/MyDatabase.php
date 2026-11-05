@@ -42,6 +42,23 @@ class MyDatabase
         return $this->ejecutar($sql, $params)->rowCount();
     }
 
+    public function beginTransaction()
+    {
+        $this->conexion->beginTransaction();
+    }
+
+    public function commit()
+    {
+        $this->conexion->commit();
+    }
+
+    public function rollBack()
+    {
+        if ($this->conexion->inTransaction()) {
+            $this->conexion->rollBack();
+        }
+    }
+
     public function lastInsertId()
     {
         return $this->conexion->lastInsertId();

@@ -1,0 +1,18 @@
+<main class="contenedor">
+    <section class="tarjeta" style="text-align: center;">
+        {{#completada}}
+            <span class="etiqueta">¡Increíble!</span>
+            <h1>Respondiste todas las preguntas</h1>
+            <p class="mensaje">No quedan más preguntas disponibles para esta partida. Tu resultado ya quedó guardado en
+                el historial.</p>
+        {{/completada}}
+        {{^completada}}
+            <span class="etiqueta">Sin preguntas</span>
+            <h1>Todavía no hay preguntas</h1>
+            <p class="mensaje">No hay preguntas activas para jugar. Volvé a intentar más tarde.</p>
+        {{/completada}}
+        <div class="acciones" style="justify-content: center;">
+            <a href="/usuario/lobby" class="boton">Volver al lobby</a>
+        </div>
+    </section>
+</main>

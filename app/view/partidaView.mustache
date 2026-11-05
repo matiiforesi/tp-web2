@@ -7,12 +7,29 @@
 
         <h1 style="margin-top: 20px;">{{pregunta.enunciado}}</h1>
 
-        <form action="/partida/responder" method="POST" style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
+        <form id="form-respuesta" action="/partida/responder" method="POST"
+              style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
             {{#pregunta.opciones}}
-                <button type="submit" name="opcion_id" value="{{id}}" class="boton boton-secundario" style="text-align: left; padding: 15px;">
+                <button type="submit" name="opcion_id" value="{{id}}" class="boton boton-secundario"
+                        style="text-align: left; padding: 15px;">
                     {{texto}}
                 </button>
             {{/pregunta.opciones}}
         </form>
     </section>
 </main>
+
+<script>
+    // Evita que un doble click envie la respuesta dos veces.
+    (function () {
+        var form = document.getElementById('form-respuesta');
+        var enviado = false;
+        form.addEventListener('submit', function (evento) {
+            if (enviado) {
+                evento.preventDefault();
+                return;
+            }
+            enviado = true;
+        });
+    })();
+</script>

@@ -227,3 +227,58 @@ h1 {
     align-items: center;
     flex-wrap: wrap;
 }
+
+/* ── Tablas (ranking e historial de partidas) ──────── */
+.tabla-scroll {
+    overflow-x: auto;
+    margin-top: 1rem;
+}
+
+.tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .95rem;
+}
+
+.tabla th,
+.tabla td {
+    padding: .7rem .8rem;
+    text-align: left;
+    border-bottom: 1px solid #e3e9f1;
+}
+
+.tabla th {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #617184;
+}
+
+.tabla .col-posicion {
+    width: 3.5rem;
+    text-align: center;
+}
+
+.tabla .col-puntaje {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.tabla tbody tr:hover {
+    background: #f3f6fa;
+}
+
+.tabla .fila-yo {
+    background: #e8f0fb;
+}
+
+.etiqueta-yo {
+    margin-left: .3rem;
+    padding: .1rem .45rem;
+    border-radius: 999px;
+    background: #356a9a;
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+    vertical-align: middle;
+}
