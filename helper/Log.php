@@ -4,7 +4,7 @@ class Log
 {
     private static function write($level, $message)
     {
-        $logDir = __DIR__ . '/../log';
+        $logDir = getenv('TP_WEB2_LOG_DIR') ?: (__DIR__ . '/../log');
         if (!is_dir($logDir)) {
             mkdir($logDir, 0755, true);
         }

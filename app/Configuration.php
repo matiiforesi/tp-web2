@@ -11,6 +11,7 @@ use app\model\GrupoModel;
 use app\model\PartidaModel;
 use app\model\PreguntaModel;
 use app\model\RankingModel;
+use app\controller\PreguntaController;
 use app\model\UsuarioModel;
 use app\model\VerificacionCuentaModel;
 use app\service\VerificacionCuentaService;
@@ -21,6 +22,7 @@ use Router;
 
 // require_once("helper/Autoloader.php");
 require_once __DIR__ . "/../helper/Autoloader.php";
+require_once __DIR__ . "/../vendor/autoload.php";
 
 class Configuration
 {
@@ -64,6 +66,11 @@ class Configuration
             new RankingModel($this->getDatabase()),
             $this->getRender()
         );
+    }
+
+    public function getPreguntaController()
+    {
+        return new PreguntaController(new PreguntaModel($this->getDatabase()), $this->getRender());
     }
 
     public function getHomeController()

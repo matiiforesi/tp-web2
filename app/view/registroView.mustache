@@ -22,9 +22,10 @@
 
             <div class="fila">
                 <div class="campo">
-                    <label for="anio_nacimiento">Año de nacimiento</label>
-                    <input type="number" id="anio_nacimiento" name="anio_nacimiento" value="{{datos.anio_nacimiento}}"
-                           min="{{anioMinimo}}" max="{{anioMaximo}}" inputmode="numeric" required>
+                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                    <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{datos.fecha_nacimiento}}"
+                           min="{{fechaMinimaNacimiento}}" max="{{fechaMaximaNacimiento}}" required>
+                    <small>Ejemplo: 01/01/2000. Debés tener al menos 18 años.</small>
                 </div>
                 <div class="campo">
                     <label for="sexo">Sexo</label>

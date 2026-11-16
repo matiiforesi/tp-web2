@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
     rol_id TINYINT UNSIGNED NOT NULL DEFAULT 1,
     nombre_completo VARCHAR(100) NOT NULL,
-    anio_nacimiento SMALLINT UNSIGNED NOT NULL,
+    fecha_nacimiento DATE NOT NULL,
     sexo ENUM('M','F','N') NOT NULL DEFAULT 'N' COMMENT 'M=Masculino, F=Femenino, N=Prefiero no cargarlo',
     pais_codigo CHAR(2) NOT NULL,
     pais VARCHAR(80) NOT NULL,

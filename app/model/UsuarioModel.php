@@ -27,10 +27,16 @@ class UsuarioModel
             $errores[] = 'El nombre completo debe tener entre 3 y 100 caracteres.';
         }
 
-        $anio = filter_var($d['anio_nacimiento'], FILTER_VALIDATE_INT);
-        $anioActual = (int)date('Y');
-        if ($anio === false || $anio < $anioActual - 120 || $anio > $anioActual) {
-            $errores[] = 'El año de nacimiento no es válido.';
+        $fechaNacimiento = \DateTimeImmutable::createFromFormat('!Y-m-d', $d['fecha_nacimiento']);
+        $erroresFecha = \DateTimeImmutable::getLastErrors();
+        $fechaValida = $fechaNacimiento !== false
+            && ($erroresFecha === false || ($erroresFecha['warning_count'] === 0 && $erroresFecha['error_count'] === 0))
+            && $fechaNacimiento->format('Y-m-d') === $d['fecha_nacimiento'];
+        $hoy = new \DateTimeImmutable('today');
+        $fechaMinima = $hoy->modify('-120 years');
+        $fechaMaxima = $hoy->modify('-18 years');
+        if (!$fechaValida || $fechaNacimiento < $fechaMinima || $fechaNacimiento > $fechaMaxima) {
+            $errores[] = 'La fecha de nacimiento no es válida o debés tener al menos 18 años.';
         }
 
         if (!array_key_exists($d['sexo'], self::SEXOS)) {
@@ -127,13 +133,13 @@ class UsuarioModel
     {
         $this->db->execute(
             "INSERT INTO usuario
-                (rol_id, nombre_completo, anio_nacimiento, sexo, pais_codigo, pais, ciudad,
+                (rol_id, nombre_completo, fecha_nacimiento, sexo, pais_codigo, pais, ciudad,
                  latitud, longitud, email, usuario, password_hash, foto_perfil)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             [
                 self::ROL_JUGADOR,
                 $d['nombre_completo'],
-                (int)$d['anio_nacimiento'],
+                $d['fecha_nacimiento'],
                 $d['sexo'],
                 $d['pais_codigo'],
                 $d['pais'],
@@ -154,5 +160,65 @@ class UsuarioModel
         $sql = "SELECT puntaje_total FROM usuario WHERE id = ?";
         $resultado = $this->db->queryOne($sql, [$usuarioId]);
         return $resultado ? (int)$resultado['puntaje_total'] : 0;
+    }
+
+    public function getPerfil($usuarioId)
+    {
+        return $this->db->queryOne(
+            "SELECT usuario, nombre_completo, fecha_nacimiento, sexo, pais, ciudad,
+                    email, foto_perfil, puntaje_total, cuenta_validada, fecha_registro
+             FROM usuario
+             WHERE id = ?",
+            [$usuarioId]
+        );
+    }
+
+    public function getFotoPerfil($usuarioId)
+    {
+        $fila = $this->db->queryOne("SELECT foto_perfil FROM usuario WHERE id = ?", [$usuarioId]);
+        return $fila['foto_perfil'] ?? null;
+    }
+
+    public function getEstadisticasJuego($usuarioId): array
+    {
+        $fila = $this->db->queryOne(
+            "SELECT
+                (SELECT COUNT(*) FROM partida p
+                 WHERE p.usuario_id = ? AND EXISTS (
+                    SELECT 1 FROM partida_pregunta pp0 WHERE pp0.partida_id = p.id
+                 )) AS partidas,
+                (SELECT COUNT(*) FROM partida_pregunta pp
+                 JOIN partida p2 ON p2.id = pp.partida_id
+                 WHERE p2.usuario_id = ? AND pp.correcta IS NOT NULL) AS respuestas,
+                (SELECT COALESCE(SUM(pp.correcta = 1), 0) FROM partida_pregunta pp
+                 JOIN partida p3 ON p3.id = pp.partida_id
+                 WHERE p3.usuario_id = ?) AS aciertos,
+                (SELECT COUNT(*) + 1 FROM usuario u2
+                 WHERE u2.rol_id = 1 AND u2.cuenta_validada = 1
+                   AND (u2.puntaje_total > u.puntaje_total
+                        OR (u2.puntaje_total = u.puntaje_total AND u2.fecha_registro < u.fecha_registro)
+                        OR (u2.puntaje_total = u.puntaje_total AND u2.fecha_registro = u.fecha_registro AND u2.id < u.id))) AS posicion
+             FROM usuario u WHERE u.id = ?",
+            [$usuarioId, $usuarioId, $usuarioId, $usuarioId]
+        );
+
+        $respuestas = (int)($fila['respuestas'] ?? 0);
+        $aciertos = (int)($fila['aciertos'] ?? 0);
+        return [
+            'partidas' => (int)($fila['partidas'] ?? 0),
+            'respuestas' => $respuestas,
+            'aciertos' => $aciertos,
+            'porcentaje' => $respuestas > 0 ? (int)round($aciertos * 100 / $respuestas) : 0,
+            'posicion' => (int)($fila['posicion'] ?? 0),
+        ];
+    }
+
+    public function getPerfilPublico(string $usuario): ?array
+    {
+        return $this->db->queryOne(
+            "SELECT id, usuario, nombre_completo, pais, ciudad, foto_perfil, puntaje_total
+             FROM usuario WHERE usuario = ? AND cuenta_validada = 1",
+            [$usuario]
+        );
     }
 }

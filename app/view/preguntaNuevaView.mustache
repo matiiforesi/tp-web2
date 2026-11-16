@@ -1,0 +1,53 @@
+<main class="contenedor">
+    <section class="tarjeta propuesta-pregunta">
+        <span class="etiqueta">Comunidad</span>
+        <h1>Proponer una pregunta</h1>
+        <p class="mensaje">Compartí una pregunta para que otros jugadores puedan responderla. Un editor la revisará antes de agregarla al juego.</p>
+
+        {{#error}}<div class="errores" role="alert">{{error}}</div>{{/error}}
+        {{#exito}}<div class="info" role="status">{{exito}}</div>{{/exito}}
+
+        <form class="formulario" method="POST" action="/pregunta/crear">
+            <div class="campo">
+                <label for="categoria_id">Categoría</label>
+                <select name="categoria_id" id="categoria_id" required>
+                    <option value="" disabled selected>Elegí una categoría</option>
+                    {{#categorias}}<option value="{{id}}">{{#esGeografia}}Geografía{{/esGeografia}}{{^esGeografia}}{{nombre}}{{/esGeografia}}</option>{{/categorias}}
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="enunciado">Tu pregunta</label>
+                <textarea name="enunciado" id="enunciado" maxlength="500" rows="3" placeholder="Escribí una pregunta clara" required></textarea>
+                <small>Máximo 500 caracteres.</small>
+            </div>
+
+            <fieldset class="opciones-propuesta">
+                <legend>Opciones de respuesta</legend>
+                <p class="nota">Escribí cuatro opciones y marcá una como correcta.</p>
+                <div class="opcion-propuesta">
+                    <label for="opcion-0">Opción 1</label>
+                    <input id="opcion-0" type="text" name="opciones[]" maxlength="255" required>
+                    <label class="opcion-correcta"><input type="radio" name="correcta" value="0" required><span>Correcta</span></label>
+                </div>
+                <div class="opcion-propuesta">
+                    <label for="opcion-1">Opción 2</label>
+                    <input id="opcion-1" type="text" name="opciones[]" maxlength="255" required>
+                    <label class="opcion-correcta"><input type="radio" name="correcta" value="1"><span>Correcta</span></label>
+                </div>
+                <div class="opcion-propuesta">
+                    <label for="opcion-2">Opción 3</label>
+                    <input id="opcion-2" type="text" name="opciones[]" maxlength="255" required>
+                    <label class="opcion-correcta"><input type="radio" name="correcta" value="2"><span>Correcta</span></label>
+                </div>
+                <div class="opcion-propuesta">
+                    <label for="opcion-3">Opción 4</label>
+                    <input id="opcion-3" type="text" name="opciones[]" maxlength="255" required>
+                    <label class="opcion-correcta"><input type="radio" name="correcta" value="3"><span>Correcta</span></label>
+                </div>
+            </fieldset>
+
+            <button class="boton propuesta-enviar" type="submit">Enviar para revisión</button>
+        </form>
+    </section>
+</main>
