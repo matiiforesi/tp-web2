@@ -101,7 +101,6 @@ class UsuarioController
         $this->render->renderiza('lobby', [
             'aviso' => $aviso,
             'usuario' => $_SESSION['usuario'],
-            'esModerador' => in_array((int)($_SESSION['rol_id'] ?? 0), [2, 3], true),
             'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
             'partidas' => $partidas,
             'hayPartidas' => !empty($partidas),

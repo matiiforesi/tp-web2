@@ -16,36 +16,6 @@ class PreguntaModel
         return $categorias;
     }
 
-    public function crearPropuesta(int $usuarioId, int $categoriaId, string $enunciado, array $opciones, int $correcta): int
-    {
-        $this->db->beginTransaction();
-        try {
-            $this->db->execute("INSERT INTO pregunta (categoria_id, enunciado, estado, creada_por) VALUES (?, ?, 'pendiente', ?)", [$categoriaId, $enunciado, $usuarioId]);
-            $id = (int)$this->db->lastInsertId();
-            foreach ($opciones as $i => $opcion) {
-                $this->db->execute('INSERT INTO opcion (pregunta_id, texto, es_correcta) VALUES (?, ?, ?)', [$id, $opcion, $i === $correcta ? 1 : 0]);
-            }
-            $this->db->commit();
-            return $id;
-        } catch (\Throwable $e) {
-            $this->db->rollBack();
-            throw $e;
-        }
-    }
-
-    public function pendientes(): array
-    {
-        return $this->db->queryAll("SELECT p.id, p.enunciado, p.estado, p.fecha_creacion, c.nombre AS categoria, u.usuario AS creador
-            FROM pregunta p JOIN categoria c ON c.id = p.categoria_id LEFT JOIN usuario u ON u.id = p.creada_por
-            WHERE p.estado = 'pendiente' ORDER BY p.fecha_creacion ASC");
-    }
-
-    public function moderar(int $id, string $accion, string $enunciado): void
-    {
-        $estado = $accion === 'aprobar' ? 'activa' : ($accion === 'rechazar' ? 'baja' : 'pendiente');
-        $this->db->execute('UPDATE pregunta SET enunciado = ?, estado = ? WHERE id = ? AND estado = \'pendiente\'', [$enunciado, $estado, $id]);
-    }
-
     public function __construct($db)
     {
         $this->db = $db;

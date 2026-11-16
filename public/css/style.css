@@ -80,6 +80,13 @@ h1 {
     font-size: .85rem;
 }
 
+.modal-qr[hidden] { display: none; }
+.modal-qr { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 1rem; background: rgb(15 25 35 / 65%); }
+.modal-qr-contenido { position: relative; width: min(100%, 360px); padding: 2rem; text-align: center; background: #fff; border-radius: 1rem; box-shadow: 0 18px 50px rgb(0 0 0 / 25%); }
+.modal-qr-contenido h2 { margin-top: 0; color: #243b53; }
+.qr-imagen svg { display: block; width: min(100%, 240px); height: auto; margin: auto; }
+.modal-qr-cerrar { position: absolute; top: .5rem; right: .75rem; border: 0; background: transparent; color: #617184; font-size: 1.8rem; cursor: pointer; }
+
 /* ── Formulario de registro ─────────────── */
 .formulario {
     display: grid;

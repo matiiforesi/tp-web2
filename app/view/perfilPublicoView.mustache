@@ -13,9 +13,21 @@
                 <div><span>Partidas jugadas</span><strong>{{perfil.estadisticas.partidas}}</strong></div>
                 <div><span>Precisión</span><strong>{{perfil.estadisticas.porcentaje}}%</strong></div>
             </div>
+            <div class="acciones"><button type="button" class="boton" id="abrir-qr">Compartir perfil</button></div>
         </section>
     {{/encontrado}}
     {{^encontrado}}
         <section class="tarjeta"><h1>Perfil no encontrado</h1><p class="mensaje">El jugador no existe o todavía no activó su cuenta.</p><a href="/" class="boton">Volver al inicio</a></section>
     {{/encontrado}}
 </main>
+<div class="modal-qr" id="modal-qr" hidden role="dialog" aria-modal="true" aria-labelledby="titulo-qr">
+    <div class="modal-qr-contenido">
+        <button type="button" class="modal-qr-cerrar" id="cerrar-qr" aria-label="Cerrar">×</button>
+        <h2 id="titulo-qr">Compartí este perfil</h2>
+        <div id="qr-imagen" class="qr-imagen" aria-label="Código QR del perfil"></div>
+        <p class="nota">Escaneá el código para abrir este perfil.</p>
+    </div>
+</div>
+<script src="/public/js/qrcode.min.js" defer></script>
+<script src="/public/js/perfil-qr.js" defer></script>
+<script>window.perfilPublicoUrl = window.location.href;</script>
