@@ -172,4 +172,11 @@ class PartidaModel
             ];
         }, $filas);
     }
+
+    public function getPuntajePartida($partidaId)
+    {
+        $sql = "SELECT COUNT(*) as puntos FROM partida_pregunta WHERE partida_id = ? AND correcta = 1";
+        $resultado = $this->db->queryOne($sql, [$partidaId]);
+        return $resultado ? (int)$resultado['puntos'] : 0;
+    }
 }

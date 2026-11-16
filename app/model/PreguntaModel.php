@@ -85,4 +85,11 @@ class PreguntaModel
         $resultado = $this->db->queryOne($sql, [$usuarioId]);
         return $resultado ? (int)$resultado['puntaje_total'] : 0;
     }
+
+    public function getRespuestaCorrecta($preguntaId)
+    {
+        $sql = "SELECT texto FROM opcion WHERE pregunta_id = ? AND es_correcta = 1 LIMIT 1";
+        $resultado = $this->db->queryOne($sql, [$preguntaId]);
+        return $resultado ? $resultado['texto'] : 'No disponible';
+    }
 }

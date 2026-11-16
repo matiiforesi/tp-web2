@@ -6,10 +6,10 @@ use app\controller\GrupoController;
 use app\controller\UsuarioController;
 use app\controller\HomeController;
 use app\controller\PartidaController;
+use app\model\PreguntaModel;
 use app\controller\RankingController;
 use app\model\GrupoModel;
 use app\model\PartidaModel;
-use app\model\PreguntaModel;
 use app\model\RankingModel;
 use app\model\UsuarioModel;
 use app\model\VerificacionCuentaModel;
@@ -49,10 +49,17 @@ class Configuration
         );
     }
 
+    public function getHomeController()
+    {
+        return new HomeController(
+            $this->getRender()
+        );
+    }
+
     public function getPartidaController()
     {
         return new PartidaController(
-            new PreguntaModel($this->getDatabase()),
+            $this->getPreguntaModel(),
             $this->getPartidaModel(),
             $this->getRender()
         );
@@ -66,14 +73,7 @@ class Configuration
         );
     }
 
-    public function getHomeController()
-    {
-        return new HomeController(
-            $this->getRender()
-        );
-    }
-
-    // Los privados
+        // Los privados
     private function getGrupoModel()
     {
         return new GrupoModel();
@@ -87,6 +87,11 @@ class Configuration
     private function getPartidaModel()
     {
         return new PartidaModel($this->getDatabase());
+    }
+
+    private function getPreguntaModel()
+    {
+        return new PreguntaModel($this->getDatabase());
     }
 
     private function getVerificacionCuentaService()

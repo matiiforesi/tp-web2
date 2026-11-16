@@ -117,7 +117,8 @@ class PartidaController
         }
 
         unset($_SESSION['partida_id']);
-        \Redirect::to('/usuario/lobby');
+
+        $this->mostrarFinDePartida($usuarioId, $partidaId, false, $pendiente['pregunta_id']);
     }
 
     // Estas URLs crean la partida, muestran y marcan la pregunta: si el navegador
@@ -128,6 +129,22 @@ class PartidaController
             http_response_code(204);
             exit;
         }
+    }
+
+    private function mostrarFinDePartida($usuarioId, $partidaId, $fueCorrecta, $preguntaId = null)
+    {
+        $puntosPartida = $this->partidas->getPuntajePartida($partidaId);
+
+        $textoCorrecto = null;
+        if (!$fueCorrecta && $preguntaId !== null) {
+            $textoCorrecto = $this->model->getRespuestaCorrecta($preguntaId);
+        }
+
+        $this->render->renderiza('finPartida', [
+            'fueCorrecta' => $fueCorrecta,
+            'puntosGanados' => $puntosPartida,
+            'respuestaCorrecta' => $textoCorrecto
+        ]);
     }
 
     private function exigirLogin(): int
