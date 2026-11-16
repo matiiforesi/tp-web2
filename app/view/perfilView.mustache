@@ -33,17 +33,7 @@
         </div>
 
         <div class="acciones">
-            <button type="button" class="boton" id="abrir-qr">Ver QR público</button>
             <a href="/usuario/lobby" class="boton boton-secundario">Volver al lobby</a>
         </div>
     </section>
 </main>
-<div class="modal-qr" id="modal-qr" hidden role="dialog" aria-modal="true" aria-labelledby="titulo-qr">
-    <div class="modal-qr-contenido">
-        <button type="button" class="modal-qr-cerrar" id="cerrar-qr" aria-label="Cerrar">×</button>
-        <h2 id="titulo-qr">Compartí tu perfil</h2>
-        <img src="/usuario/qr?usuario={{perfil.usuario}}" width="240" height="240" alt="Código QR de tu perfil público">
-        <p class="nota">Escaneá el código para abrir tu perfil público.</p>
-    </div>
-</div>
-<script>(function(){var m=document.getElementById('modal-qr'),a=document.getElementById('abrir-qr'),c=document.getElementById('cerrar-qr');if(!m||!a||!c)return;a.onclick=function(){m.hidden=false};c.onclick=function(){m.hidden=true};m.onclick=function(e){if(e.target===m)m.hidden=true}})();</script>

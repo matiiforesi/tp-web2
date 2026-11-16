@@ -22,7 +22,6 @@ use Router;
 
 // require_once("helper/Autoloader.php");
 require_once __DIR__ . "/../helper/Autoloader.php";
-require_once __DIR__ . "/../vendor/autoload.php";
 
 class Configuration
 {

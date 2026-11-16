@@ -178,25 +178,6 @@ class UsuarioController
         $this->render->renderiza('perfilPublico', ['encontrado' => true, 'perfil' => $perfil]);
     }
 
-    // GET /usuario/qr?usuario=...
-    public function qr()
-    {
-        $usuario = trim((string)Request::get('usuario', ''));
-        $perfil = $usuario === '' ? null : $this->model->getPerfilPublico($usuario);
-        if ($perfil === null) {
-            http_response_code(404);
-            return;
-        }
-
-        $config = parse_ini_file(__DIR__ . '/../../config/config.ini');
-        $url = rtrim((string)($config['app_url'] ?? ''), '/') . '/usuario/publico?usuario=' . rawurlencode($perfil['usuario']);
-        $qrCode = new \Endroid\QrCode\QrCode($url);
-        $resultado = (new \Endroid\QrCode\Writer\SvgWriter())->write($qrCode);
-        header('Content-Type: image/svg+xml; charset=UTF-8');
-        header('Cache-Control: public, max-age=3600');
-        echo $resultado->getString();
-    }
-
     // GET /usuario/fotoPublica?usuario=...
     public function fotoPublica()
     {
