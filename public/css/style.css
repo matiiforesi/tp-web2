@@ -463,3 +463,90 @@ body:has(.contenedor-juego) .pie {
         transform: none;
     }
 }
+
+.juego-timer {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: #243b53;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+    transition: background-color .2s ease;
+}
+
+.timer-barra {
+    height: 6px;
+    margin-top: .75rem;
+    border-radius: 999px;
+    background: #e9eef5;
+    overflow: hidden;
+}
+
+.timer-progreso {
+    height: 100%;
+    background: var(--color-categoria, #356a9a);
+    transform-origin: left center;
+    transition: background-color .2s ease;
+}
+
+.tiempo-urgente .juego-timer,
+.tiempo-urgente .timer-progreso {
+    background: #d64545;
+}
+
+.enviado .opcion {
+    pointer-events: none;
+}
+
+.opcion-resultado,
+.opcion-resultado:hover {
+    cursor: default;
+    border-color: #dbe3ed;
+}
+
+.opcion-correcta,
+.opcion-correcta:hover {
+    background: #2e9e5b;
+    border-color: #2e9e5b;
+    color: #fff;
+}
+
+.opcion-incorrecta,
+.opcion-incorrecta:hover {
+    background: #d64545;
+    border-color: #d64545;
+    color: #fff;
+}
+
+.opcion-correcta::before,
+.opcion-incorrecta::before {
+    background: rgb(255 255 255 / 25%);
+}
+
+.opcion-apagada {
+    opacity: .5;
+}
+
+.resultado-mensaje {
+    margin: clamp(.75rem, 2vh, 1.1rem) 0 .75rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.resultado-ok {
+    color: #2e9e5b;
+}
+
+.resultado-mal {
+    color: #d64545;
+}
+
+.juego-continuar {
+    display: block;
+    width: 100%;
+}
