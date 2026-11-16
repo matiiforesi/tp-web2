@@ -282,3 +282,184 @@ h1 {
     font-weight: 700;
     vertical-align: middle;
 }
+
+.barra-contenido {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: .6rem 1rem;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.barra-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .5rem;
+}
+
+.saludo {
+    color: #fff;
+    margin-right: .25rem;
+}
+
+.contenedor-juego {
+    width: min(100% - 2rem, 620px);
+    margin: auto;
+    padding: clamp(.75rem, 3vh, 2rem) 0;
+}
+
+.tarjeta-juego {
+    padding: clamp(1rem, 3.5vh, 2rem) clamp(1rem, 4vw, 2rem);
+    border-top: 8px solid var(--color-categoria, #356a9a);
+}
+
+.juego-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: .5rem;
+}
+
+.juego-puntos {
+    padding: .3rem .75rem;
+    border-radius: 999px;
+    background: #e9eef5;
+    color: #243b53;
+    font-size: .85rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.juego-enunciado {
+    margin: clamp(.6rem, 2.5vh, 1.4rem) 0;
+    font-size: clamp(1.25rem, 1.2vw + 2vh, 2rem);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.juego-opciones {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(.5rem, 1.5vh, .9rem);
+    counter-reset: opcion;
+}
+
+.opcion {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: clamp(.6rem, 1.8vh, 1rem) 1rem;
+    border: 2px solid #dbe3ed;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 1.05rem;
+    text-align: left;
+    line-height: 1.3;
+    transition: background-color .15s ease, border-color .15s ease, transform .1s ease;
+}
+
+.opcion::before {
+    counter-increment: opcion;
+    content: counter(opcion, upper-alpha);
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 50%;
+    background: #243b53;
+    color: #fff;
+    font-size: .85rem;
+}
+
+.opcion:hover {
+    border-color: var(--color-categoria, #356a9a);
+}
+
+.opcion:active {
+    transform: scale(.98);
+}
+
+.opcion-texto {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.fin-partida {
+    text-align: center;
+}
+
+.fin-incorrecta,
+.fin-puntos {
+    margin-bottom: clamp(.75rem, 2.5vh, 1.25rem);
+    padding: clamp(.75rem, 2.5vh, 1.25rem);
+    border-radius: .75rem;
+}
+
+.fin-incorrecta p,
+.fin-puntos p {
+    margin: 0 0 .3rem;
+}
+
+.fin-incorrecta {
+    background: #fdeeee;
+    border: 1px solid #e3a5a5;
+    color: #8a1f1f;
+}
+
+.fin-incorrecta strong {
+    font-size: 1.15rem;
+}
+
+.fin-puntos {
+    background: #e7f5ee;
+    border: 1px solid #a8d5bd;
+    color: #0f5132;
+}
+
+.fin-puntos strong {
+    display: block;
+    font-size: clamp(2.25rem, 8vh, 3.25rem);
+    line-height: 1.1;
+}
+
+.fin-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .75rem;
+}
+
+.fin-acciones .boton {
+    flex: 1 1 10rem;
+}
+
+body:has(.contenedor-juego) .pie {
+    padding: .6rem;
+}
+
+@media (max-width: 600px) {
+    .barra-superior {
+        padding: .75rem 1rem;
+    }
+
+    .saludo {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .opcion {
+        transition: none;
+    }
+
+    .opcion:active {
+        transform: none;
+    }
+}

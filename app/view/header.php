@@ -11,14 +11,13 @@
 <body>
 
 <header class="barra-superior">
-    <div style="display: flex; justify-content: space-between;
-        align-items: center; max-width: 1000px; margin: 0 auto; padding: 0 1rem;">
+    <div class="barra-contenido">
         <a href="/" class="marca">🧠 Juego de Preguntas</a>
 
-        <nav>
+        <nav class="barra-nav">
             <?php if (isset($_SESSION['usuario_id'])): ?>
                 <!-- si esta logueado -->
-                <span style="color: #fff; margin-right: 10px;">Hola, <?= htmlspecialchars($_SESSION['usuario']) ?></span>
+                <span class="saludo">Hola, <?= htmlspecialchars($_SESSION['usuario']) ?></span>
                 <a href="/usuario/lobby" class="boton">Lobby</a>
                 <a href="/usuario/logout" class="boton boton-secundario">Salir</a>
             <?php else: ?>
