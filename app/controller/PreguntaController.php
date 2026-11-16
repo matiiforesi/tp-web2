@@ -2,84 +2,61 @@
 
 namespace app\controller;
 
+use app\model\PreguntaModel;
+use Request;
+use Redirect;
+
 class PreguntaController
 {
-    private $model;
-    private $render;
+    public function __construct(private PreguntaModel $model, private $render) {}
 
-    public function __construct($model, $render)
+    public function nueva()
     {
-        $this->model = $model;
-        $this->render = $render;
+        $this->exigirLogin();
+        $this->render->renderiza('preguntaNueva', ['categorias' => $this->model->categorias()]);
     }
 
-    // GET /pregunta/sugerir
-    public function sugerir()
+    public function crear()
     {
-        if (!isset($_SESSION['usuario_id'])) {
-            \Redirect::to('/usuario/login');
+        $usuarioId = $this->exigirLogin();
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') Redirect::to('/pregunta/nueva');
+        $enunciado = trim((string)Request::post('enunciado', ''));
+        $categoria = (int)Request::post('categoria_id', 0);
+        $opciones = array_values(array_filter(array_map('trim', (array)($_POST['opciones'] ?? [])), fn($v) => $v !== ''));
+        $correcta = (int)Request::post('correcta', -1);
+        if ($enunciado === '' || mb_strlen($enunciado) > 500 || $categoria < 1 || count($opciones) < 2 || $correcta < 0 || $correcta >= count($opciones)) {
+            $this->render->renderiza('preguntaNueva', ['categorias' => $this->model->categorias(), 'error' => 'Completá la pregunta, la categoría y al menos dos opciones.']);
+            return;
         }
-
-        $categorias = $this->model->getCategorias();
-
-        $this->render->renderiza('sugerirPregunta', [
-            'categorias' => $categorias
-        ]);
+        $this->model->crearPropuesta($usuarioId, $categoria, $enunciado, $opciones, $correcta);
+        $this->render->renderiza('preguntaNueva', ['categorias' => $this->model->categorias(), 'exito' => 'Tu pregunta quedó pendiente de revisión.']);
     }
 
-    // POST /pregunta/guardar
-    public function guardar()
+    public function pendientes()
     {
-        if (!isset($_SESSION['usuario_id'])) {
-            \Redirect::to('/usuario/login');
-        }
-
-        $enunciado = \Request::post('enunciado');
-        $categoriaId = filter_var(\Request::post('categoria_id'), FILTER_VALIDATE_INT);
-        $opcion1 = \Request::post('opcion1');
-        $opcion2 = \Request::post('opcion2');
-        $opcion3 = \Request::post('opcion3');
-        $opcion4 = \Request::post('opcion4');
-        $correcta = \Request::post('correcta'); // Esto va a ser 1, 2, 3 o 4
-
-        if (empty($enunciado) || !$categoriaId || empty($opcion1) || empty($opcion2) || empty($opcion3) || empty($opcion4) || !$correcta) {
-            $_SESSION['aviso_sugerir'] = "Todos los campos son obligatorios.";
-            \Redirect::to('/pregunta/sugerir');
-        }
-
-        $opciones = [
-            ['texto' => $opcion1, 'es_correcta' => ($correcta == '1') ? 1 : 0],
-            ['texto' => $opcion2, 'es_correcta' => ($correcta == '2') ? 1 : 0],
-            ['texto' => $opcion3, 'es_correcta' => ($correcta == '3') ? 1 : 0],
-            ['texto' => $opcion4, 'es_correcta' => ($correcta == '4') ? 1 : 0],
-        ];
-
-        $this->model->guardarSugerencia($enunciado, $categoriaId, $opciones);
-
-        $_SESSION['aviso_lobby'] = "¡Gracias! Tu pregunta fue enviada para revisión.";
-        \Redirect::to('/usuario/lobby');
+        $this->exigirModerador();
+        $this->render->renderiza('preguntasPendientes', ['preguntas' => $this->model->pendientes(), 'hayPreguntas' => !empty($this->model->pendientes())]);
     }
 
-    // POST /pregunta/reportar
-    public function reportar()
+    public function moderar()
     {
-        if (!isset($_SESSION['usuario_id'])) {
-            \Redirect::to('/usuario/login');
+        $this->exigirModerador();
+        $this->model->moderar((int)Request::post('id', 0), (string)Request::post('accion', ''), trim((string)Request::post('enunciado', '')));
+        Redirect::to('/pregunta/pendientes');
+    }
+
+    private function exigirLogin(): int
+    {
+        if (!isset($_SESSION['usuario_id'])) Redirect::to('/usuario/login');
+        return (int)$_SESSION['usuario_id'];
+    }
+
+    private function exigirModerador(): void
+    {
+        $this->exigirLogin();
+        if (!in_array((int)($_SESSION['rol_id'] ?? 0), [2, 3], true)) {
+            http_response_code(403);
+            exit('No tenés permisos para moderar preguntas.');
         }
-
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            \Redirect::to('/usuario/lobby');
-        }
-
-        $usuarioId = (int)$_SESSION['usuario_id'];
-        $preguntaId = filter_var(\Request::post('pregunta_id'), FILTER_VALIDATE_INT);
-        $motivo = \Request::post('motivo');
-
-        if ($preguntaId && !empty($motivo)) {
-            $this->model->guardarReporte($preguntaId, $usuarioId, $motivo);
-            $_SESSION['aviso_lobby'] = "Gracias. La pregunta fue reportada.";
-        }
-
-        \Redirect::to('/partida/jugar');
     }
 }

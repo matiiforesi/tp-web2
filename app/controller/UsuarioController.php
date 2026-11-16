@@ -107,6 +107,109 @@ class UsuarioController
         ]);
     }
 
+    // GET /usuario/perfil
+    public function perfil()
+    {
+        if (!isset($_SESSION['usuario_id'])) {
+            Redirect::to('/usuario/login');
+        }
+
+        $perfil = $this->model->getPerfil((int)$_SESSION['usuario_id']);
+        if ($perfil === null) {
+            Redirect::to('/usuario/logout');
+        }
+
+        $fecha = \DateTimeImmutable::createFromFormat('!Y-m-d', (string)$perfil['fecha_nacimiento']);
+        $perfil['fecha_nacimiento'] = $fecha ? $fecha->format('d/m/Y') : $perfil['fecha_nacimiento'];
+        $perfil['sexo'] = UsuarioModel::SEXOS[$perfil['sexo']] ?? $perfil['sexo'];
+        $perfil['estadoCuenta'] = (int)$perfil['cuenta_validada'] === 1 ? 'Cuenta activada' : 'Pendiente de activación';
+        $perfil['fecha_registro'] = date('d/m/Y', strtotime($perfil['fecha_registro']));
+        $perfil['tieneFoto'] = !empty($perfil['foto_perfil']);
+        $perfil['estadisticas'] = $this->model->getEstadisticasJuego((int)$_SESSION['usuario_id']);
+
+        $this->render->renderiza('perfil', ['perfil' => $perfil]);
+    }
+
+    // GET /usuario/foto
+    public function foto()
+    {
+        if (!isset($_SESSION['usuario_id'])) {
+            http_response_code(404);
+            return;
+        }
+
+        $nombre = $this->model->getFotoPerfil((int)$_SESSION['usuario_id']);
+        if (!is_string($nombre) || !preg_match('/^[a-f0-9]{32}\.(jpg|png|webp)$/i', $nombre)) {
+            http_response_code(404);
+            return;
+        }
+
+        $ruta = rtrim($this->directorioFotos(), '/\\') . DIRECTORY_SEPARATOR . $nombre;
+        if (!is_file($ruta)) {
+            http_response_code(404);
+            return;
+        }
+
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($ruta);
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            http_response_code(404);
+            return;
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: private, max-age=3600');
+        readfile($ruta);
+    }
+
+    // GET /usuario/publico?usuario=...
+    public function publico()
+    {
+        $usuario = trim((string)Request::get('usuario', ''));
+        $perfil = $usuario === '' ? null : $this->model->getPerfilPublico($usuario);
+        if ($perfil === null) {
+            http_response_code(404);
+            $this->render->renderiza('perfilPublico', ['encontrado' => false]);
+            return;
+        }
+
+        $perfil['tieneFoto'] = !empty($perfil['foto_perfil']);
+        $perfil['estadisticas'] = $this->model->getEstadisticasJuego((int)$perfil['id']);
+        $this->render->renderiza('perfilPublico', ['encontrado' => true, 'perfil' => $perfil]);
+    }
+
+    // GET /usuario/fotoPublica?usuario=...
+    public function fotoPublica()
+    {
+        $usuario = trim((string)Request::get('usuario', ''));
+        $perfil = $usuario === '' ? null : $this->model->getPerfilPublico($usuario);
+        $nombre = $perfil['foto_perfil'] ?? null;
+        $this->servirFoto($nombre);
+    }
+
+    private function servirFoto($nombre): void
+    {
+        if (!is_string($nombre) || !preg_match('/^[a-f0-9]{32}\.(jpg|png|webp)$/i', $nombre)) {
+            http_response_code(404);
+            return;
+        }
+
+        $ruta = rtrim($this->directorioFotos(), '/\\') . DIRECTORY_SEPARATOR . $nombre;
+        if (!is_file($ruta)) {
+            http_response_code(404);
+            return;
+        }
+
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($ruta);
+        if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) {
+            http_response_code(404);
+            return;
+        }
+
+        header('Content-Type: ' . $mime);
+        header('Cache-Control: public, max-age=3600');
+        readfile($ruta);
+    }
+
     // GET /usuario/logout
     public function logout()
     {
@@ -243,7 +346,7 @@ class UsuarioController
 
         return [
             'nombre_completo' => $texto('nombre_completo'),
-            'anio_nacimiento' => $texto('anio_nacimiento'),
+            'fecha_nacimiento' => $texto('fecha_nacimiento'),
             'sexo' => $texto('sexo'),
             'pais_codigo' => strtoupper($texto('pais_codigo')),
             'pais' => $texto('pais'),
@@ -259,6 +362,10 @@ class UsuarioController
 
     private function mostrarFormulario(array $datos, array $errores)
     {
+        if (!array_key_exists('fecha_nacimiento', $datos) || $datos['fecha_nacimiento'] === '') {
+            $datos['fecha_nacimiento'] = '2000-01-01';
+        }
+
         $sexos = [];
         foreach (UsuarioModel::SEXOS as $valor => $etiqueta) {
             $sexos[] = [
@@ -275,13 +382,13 @@ class UsuarioController
             'hayErrores' => !empty($errores),
             'datos' => $datos,
             'sexos' => $sexos,
-            'anioMaximo' => (int)date('Y'),
-            'anioMinimo' => (int)date('Y') - 120,
+            'fechaMaximaNacimiento' => (new \DateTimeImmutable('today'))->modify('-18 years')->format('Y-m-d'),
+            'fechaMinimaNacimiento' => (new \DateTimeImmutable('today'))->modify('-120 years')->format('Y-m-d'),
         ]);
     }
 
     private function directorioFotos(): string
     {
-        return dirname(__DIR__, 2) . '/public/uploads/perfiles';
+        return getenv('TP_WEB2_UPLOAD_DIR') ?: (dirname(__DIR__, 2) . '/public/uploads/perfiles');
     }
 }

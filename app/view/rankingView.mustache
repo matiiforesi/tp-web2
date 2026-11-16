@@ -19,8 +19,7 @@
                     {{#jugadores}}
                         <tr class="{{#esUsuarioActual}}fila-yo{{/esUsuarioActual}}">
                             <td class="col-posicion">{{#medalla}}{{medalla}}{{/medalla}}{{^medalla}}{{posicion}}{{/medalla}}</td>
-                            {{! Cuando exista el perfil publico, el nombre del jugador pasa a ser un link a su perfil }}
-                            <td>{{usuario}}{{#esUsuarioActual}} <span class="etiqueta-yo">TÚ</span>{{/esUsuarioActual}}
+                            <td><a href="/usuario/publico?usuario={{usuario}}">{{usuario}}</a>{{#esUsuarioActual}} <span class="etiqueta-yo">TÚ</span>{{/esUsuarioActual}}
                             </td>
                             <td>{{pais}}</td>
                             <td class="col-puntaje"><strong>{{puntaje}}</strong></td>

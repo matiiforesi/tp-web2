@@ -6,6 +6,16 @@ class PreguntaModel
 {
     private $db;
 
+    public function categorias(): array
+    {
+        $categorias = $this->db->queryAll('SELECT id, nombre FROM categoria ORDER BY nombre');
+        foreach ($categorias as &$categoria) {
+            $categoria['esGeografia'] = (int)$categoria['id'] === 5;
+        }
+        unset($categoria);
+        return $categorias;
+    }
+
     public function __construct($db)
     {
         $this->db = $db;
