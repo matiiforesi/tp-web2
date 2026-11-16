@@ -58,7 +58,28 @@ class PreguntaController
 
         $_SESSION['aviso_lobby'] = "¡Gracias! Tu pregunta fue enviada para revisión.";
         \Redirect::to('/usuario/lobby');
+    }
 
+    // POST /pregunta/reportar
+    public function reportar()
+    {
+        if (!isset($_SESSION['usuario_id'])) {
+            \Redirect::to('/usuario/login');
+        }
 
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            \Redirect::to('/usuario/lobby');
+        }
+
+        $usuarioId = (int)$_SESSION['usuario_id'];
+        $preguntaId = filter_var(\Request::post('pregunta_id'), FILTER_VALIDATE_INT);
+        $motivo = \Request::post('motivo');
+
+        if ($preguntaId && !empty($motivo)) {
+            $this->model->guardarReporte($preguntaId, $usuarioId, $motivo);
+            $_SESSION['aviso_lobby'] = "Gracias. La pregunta fue reportada.";
+        }
+
+        \Redirect::to('/partida/jugar');
     }
 }

@@ -17,6 +17,26 @@
             {{/pregunta.opciones}}
         </form>
     </section>
+
+    <div style="text-align: center; margin-top: 2rem;">
+        <button type="button" onclick="document.getElementById('form-reporte').style.display='block'" style="background: none; border: none; color: #888; text-decoration: underline; cursor: pointer;">
+            🚩 Reportar un problema con esta pregunta
+        </button>
+
+        <div id="form-reporte" style="display: none; margin-top: 1rem; padding: 1.5rem; background: #f8d7da; border-radius: 8px; text-align: left; border: 1px solid #f5c2c7;">
+            <form action="/pregunta/reportar" method="POST">
+                <input type="hidden" name="pregunta_id" value="{{pregunta.id}}">
+
+                <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #842029;">¿Cuál es el problema con esta pregunta?</label>
+                <textarea name="motivo" rows="3" required placeholder="Ej: La respuesta correcta está mal, tiene faltas de ortografía, etc." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;"></textarea>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="boton" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">Enviar Reporte</button>
+                    <button type="button" onclick="document.getElementById('form-reporte').style.display='none'" style="background: none; border: none; text-decoration: underline; cursor: pointer; color: #842029;">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </main>
 
 <script>

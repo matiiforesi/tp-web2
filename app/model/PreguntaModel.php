@@ -110,4 +110,10 @@ class PreguntaModel
             $this->db->execute($sqlOpcion, [$preguntaId, $opcion['texto'], $opcion['es_correcta']]);
         }
     }
+
+    public function guardarReporte($preguntaId, $usuarioId, $motivo)
+    {
+        $sql = "INSERT INTO reporte_pregunta (pregunta_id, usuario_id, motivo) VALUES (?, ?, ?)";
+        return $this->db->execute($sql, [$preguntaId, $usuarioId, $motivo]);
+    }
 }
