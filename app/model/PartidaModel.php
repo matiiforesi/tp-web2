@@ -7,6 +7,8 @@ use Throwable;
 class PartidaModel
 {
     const AVISO_ABANDONO = 'Perdiste la partida: recargar la pregunta o salir sin responder termina el juego.';
+    const SEGUNDOS_POR_PREGUNTA = 15;
+    const MARGEN_SEGUNDOS = 2;
 
     private $db;
 
@@ -46,7 +48,8 @@ class PartidaModel
     public function preguntaPendiente($partidaId)
     {
         return $this->db->queryOne(
-            "SELECT id, pregunta_id FROM partida_pregunta
+            "SELECT id, pregunta_id, TIMESTAMPDIFF(SECOND, fecha, NOW()) AS segundos
+             FROM partida_pregunta
              WHERE partida_id = ? AND correcta IS NULL LIMIT 1",
             [$partidaId]
         );

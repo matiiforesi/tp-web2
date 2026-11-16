@@ -1,21 +1,43 @@
-<main class="contenedor">
-    <section class="tarjeta" style="border-top: 10px solid {{pregunta.categoria_color}};">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+<main class="contenedor-juego">
+    <section id="tarjeta-juego" class="tarjeta tarjeta-juego" style="--color-categoria: {{pregunta.categoria_color}};">
+        <div class="juego-cabecera">
             <span class="etiqueta">{{pregunta.categoria_nombre}}</span>
-            <span class="etiqueta" style="color: #333;">Puntos: {{puntajeTotal}}</span>
+            {{#jugando}}
+                <span id="timer" class="juego-timer" data-segundos="{{segundos}}">{{segundos}}</span>
+            {{/jugando}}
+            <span class="juego-puntos">Puntos: {{puntajeTotal}}</span>
         </div>
 
-        <h1 style="margin-top: 20px;">{{pregunta.enunciado}}</h1>
+        {{#jugando}}
+            <div class="timer-barra">
+                <div id="timer-progreso" class="timer-progreso"></div>
+            </div>
+        {{/jugando}}
 
-        <form id="form-respuesta" action="/partida/responder" method="POST"
-              style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px;">
-            {{#pregunta.opciones}}
-                <button type="submit" name="opcion_id" value="{{id}}" class="boton boton-secundario"
-                        style="text-align: left; padding: 15px;">
-                    {{texto}}
-                </button>
-            {{/pregunta.opciones}}
-        </form>
+        <h1 class="juego-enunciado">{{pregunta.enunciado}}</h1>
+
+        {{#jugando}}
+            <form id="form-respuesta" class="juego-opciones" action="/partida/responder" method="POST">
+                {{#pregunta.opciones}}
+                    <button type="submit" name="opcion_id" value="{{id}}" class="boton boton-secundario opcion">
+                        <span class="opcion-texto">{{texto}}</span>
+                    </button>
+                {{/pregunta.opciones}}
+            </form>
+        {{/jugando}}
+
+        {{^jugando}}
+            <div class="juego-opciones">
+                {{#pregunta.opciones}}
+                    <div class="boton boton-secundario opcion opcion-resultado {{clase}}">
+                        <span class="opcion-texto">{{texto}}</span>
+                    </div>
+                {{/pregunta.opciones}}
+            </div>
+
+            <p class="resultado-mensaje {{claseMensaje}}">{{mensaje}}</p>
+            <a id="continuar" href="{{siguiente}}" class="boton juego-continuar"{{#avanzarSolo}} data-avanzar-solo{{/avanzarSolo}}>{{textoSiguiente}}</a>
+        {{/jugando}}
     </section>
 
     <div style="text-align: center; margin-top: 2rem;">
@@ -40,16 +62,59 @@
 </main>
 
 <script>
-    // Evita que un doble click envie la respuesta dos veces.
     (function () {
         var form = document.getElementById('form-respuesta');
+        var continuar = document.getElementById('continuar');
+
+        if (continuar && continuar.hasAttribute('data-avanzar-solo')) {
+            setTimeout(function () {
+                window.location.href = continuar.href;
+            }, 2500);
+        }
+
+        if (!form) {
+            return;
+        }
+
+        var tarjeta = document.getElementById('tarjeta-juego');
+        var timer = document.getElementById('timer');
+        var progreso = document.getElementById('timer-progreso');
+        var totalMs = parseInt(timer.dataset.segundos, 10) * 1000;
+        var limite = Date.now() + totalMs;
         var enviado = false;
+
+        // Evita que un doble click envie la respuesta dos veces.
         form.addEventListener('submit', function (evento) {
             if (enviado) {
                 evento.preventDefault();
                 return;
             }
             enviado = true;
+            form.classList.add('enviado');
         });
+
+        function actualizar() {
+            if (enviado) {
+                return;
+            }
+
+            var restante = Math.max(0, limite - Date.now());
+            var segundos = Math.ceil(restante / 1000);
+
+            timer.textContent = segundos;
+            progreso.style.transform = 'scaleX(' + (restante / totalMs) + ')';
+            tarjeta.classList.toggle('tiempo-urgente', segundos <= 5);
+
+            if (restante === 0) {
+                enviado = true;
+                form.classList.add('enviado');
+                form.submit();
+                return;
+            }
+
+            requestAnimationFrame(actualizar);
+        }
+
+        actualizar();
     })();
 </script>

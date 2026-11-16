@@ -30,14 +30,58 @@
             <a href="/ranking/ver" class="boton boton-secundario" style="width: 100%;">Ver Ranking</a>
         </section>
 
-        <section class="tarjeta" style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-            <h2 style="font-size: 3rem; margin: 0;">💡</h2>
-            <h3>Sugerir Pregunta</h3>
-            <p class="nota" style="margin-bottom: 1.5rem;">Ayudanos a agrandar el juego</p>
-            <a href="/pregunta/sugerir" class="boton boton-secundario" style="width: 100%;">Sugerir</a>
-        </section>
-
     </div>
+
+    <details class="sugerir-pregunta">
+        <summary class="boton boton-secundario sugerir-boton">💡 Sugerir una pregunta</summary>
+
+        <div class="tarjeta sugerir-contenido">
+        <p class="nota">Un editor la revisa antes de que aparezca en el juego.</p>
+
+        <form class="formulario" action="/pregunta/guardar" method="POST">
+            <div class="campo">
+                <label for="sugerir-categoria">Categoría</label>
+                <select id="sugerir-categoria" name="categoria_id" required>
+                    <option value="" selected disabled>Elegí una categoría</option>
+                    <option value="1">Historia</option>
+                    <option value="2">Deportes</option>
+                    <option value="3">Cultura</option>
+                    <option value="4">Ciencia</option>
+                    <option value="5">Geografía</option>
+                    <option value="6">Entretenimiento</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="sugerir-enunciado">Pregunta</label>
+                <textarea id="sugerir-enunciado" name="enunciado" rows="2" maxlength="500"
+                          placeholder="Ej: ¿Cuál es la capital de Italia?" required></textarea>
+            </div>
+
+            <fieldset class="campo sugerir-opciones">
+                <legend>Respuestas <small>(marcá la correcta)</small></legend>
+                <label class="sugerir-opcion">
+                    <input type="radio" name="correcta" value="1" required>
+                    <input type="text" name="opcion1" maxlength="255" placeholder="Respuesta A" required>
+                </label>
+                <label class="sugerir-opcion">
+                    <input type="radio" name="correcta" value="2">
+                    <input type="text" name="opcion2" maxlength="255" placeholder="Respuesta B" required>
+                </label>
+                <label class="sugerir-opcion">
+                    <input type="radio" name="correcta" value="3">
+                    <input type="text" name="opcion3" maxlength="255" placeholder="Respuesta C" required>
+                </label>
+                <label class="sugerir-opcion">
+                    <input type="radio" name="correcta" value="4">
+                    <input type="text" name="opcion4" maxlength="255" placeholder="Respuesta D" required>
+                </label>
+            </fieldset>
+
+            <button type="submit" class="boton">Enviar pregunta</button>
+        </form>
+        </div>
+    </details>
 
     <div class="tarjeta" style="margin-top: 2rem;">
         <h3 style="border-bottom: 1px solid #dbe3ed; padding-bottom: 0.5rem; text-align: center;">Tus últimas

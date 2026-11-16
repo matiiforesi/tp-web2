@@ -1,20 +1,22 @@
-<div style="text-align: center; padding: 20px; font-family: sans-serif; max-width: 400px; margin: 0 auto;">
-    <h1>Fin de la partida</h1>
+<main class="contenedor-juego">
+    <section class="tarjeta tarjeta-juego fin-partida">
+        <h1 class="juego-enunciado">Fin de la partida</h1>
 
-    {{^fueCorrecta}}
-        <div style="background: #f8d7da; color: #842029; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-            <p style="margin: 0; font-size: 14px;">La respuesta correcta era:</p>
-            <strong style="font-size: 18px;">{{respuestaCorrecta}}</strong>
+        {{^fueCorrecta}}
+            <div class="fin-incorrecta">
+                <p>La respuesta correcta era:</p>
+                <strong>{{respuestaCorrecta}}</strong>
+            </div>
+        {{/fueCorrecta}}
+
+        <div class="fin-puntos">
+            <p>Puntos en esta partida</p>
+            <strong>{{puntosGanados}}</strong>
         </div>
-    {{/fueCorrecta}}
 
-    <div style="background: #d1e7dd; color: #0f5132; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-        <p style="margin: 0; font-size: 16px;">Puntos en esta partida</p>
-        <h2 style="font-size: 48px; margin: 10px 0;">{{puntosGanados}}</h2>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-        <a href="/partida/nueva" style="padding: 12px; background: #0d6efd; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Jugar de nuevo</a>
-        <a href="/usuario/lobby" style="padding: 12px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Ir al Lobby</a>
-    </div>
-</div>
+        <div class="fin-acciones">
+            <a href="/partida/nueva" class="boton">Jugar de nuevo</a>
+            <a href="/usuario/lobby" class="boton boton-secundario">Ir al Lobby</a>
+        </div>
+    </section>
+</main>
