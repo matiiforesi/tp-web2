@@ -92,4 +92,22 @@ class PreguntaModel
         $resultado = $this->db->queryOne($sql, [$preguntaId]);
         return $resultado ? $resultado['texto'] : 'No disponible';
     }
+
+    public function getCategorias()
+    {
+        return $this->db->queryAll("SELECT id, nombre FROM categoria ORDER BY nombre ASC");
+    }
+
+    public function guardarSugerencia($enunciado, $categoriaId, $opciones)
+    {
+        $sql = "INSERT INTO pregunta (categoria_id, enunciado, estado) VALUES (?, ?, 'pendiente')";
+        $this->db->execute($sql, [$categoriaId, $enunciado]);
+
+        $preguntaId = $this->db->lastInsertId();
+
+        foreach ($opciones as $opcion) {
+            $sqlOpcion = "INSERT INTO opcion (pregunta_id, texto, es_correcta) VALUES (?, ?, ?)";
+            $this->db->execute($sqlOpcion, [$preguntaId, $opcion['texto'], $opcion['es_correcta']]);
+        }
+    }
 }

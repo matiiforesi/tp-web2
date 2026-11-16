@@ -6,8 +6,9 @@ use app\controller\GrupoController;
 use app\controller\UsuarioController;
 use app\controller\HomeController;
 use app\controller\PartidaController;
-use app\model\PreguntaModel;
+use app\controller\PreguntaController;
 use app\controller\RankingController;
+use app\model\PreguntaModel;
 use app\model\GrupoModel;
 use app\model\PartidaModel;
 use app\model\RankingModel;
@@ -69,6 +70,14 @@ class Configuration
     {
         return new RankingController(
             new RankingModel($this->getDatabase()),
+            $this->getRender()
+        );
+    }
+
+    public function getPreguntaController()
+    {
+        return new PreguntaController(
+            $this->getPreguntaModel(),
             $this->getRender()
         );
     }
