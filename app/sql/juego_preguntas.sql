@@ -35,6 +35,12 @@ CREATE TABLE IF NOT EXISTS usuario (
     password_hash VARCHAR(255) NOT NULL,
     foto_perfil VARCHAR(255) NULL,
     puntaje_total INT UNSIGNED NOT NULL DEFAULT 0,
+    puntaje_diario INT UNSIGNED NOT NULL DEFAULT 0,
+    puntaje_diario_fecha DATE NULL,
+    dinero INT UNSIGNED NOT NULL DEFAULT 0,
+    vidas TINYINT UNSIGNED NOT NULL DEFAULT 5,
+    vidas_actualizadas_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    premio_ranking_fecha DATE NULL,
     -- 0 hasta que el usuario active la cuenta.
     cuenta_validada TINYINT(1) NOT NULL DEFAULT 0,
     fecha_registro DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,

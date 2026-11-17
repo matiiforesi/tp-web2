@@ -1,0 +1,65 @@
+<main class="contenedor editor-dashboard">
+    <div class="editor-bienvenida">
+        <span class="etiqueta">PANEL DE MODERACIÓN</span>
+        <h1>Hola, {{nombreEditor}}</h1>
+        <p>Revisá las preguntas propuestas y los reportes de la comunidad.</p>
+    </div>
+
+    <section class="editor-resumen" aria-label="Pendientes">
+        <a class="editor-resumen-card" href="#preguntas-pendientes">
+            <span class="editor-resumen-icono" aria-hidden="true">📝</span>
+            <span><strong>{{cantidadPendientes}}</strong><small>Preguntas por aprobar</small></span>
+        </a>
+        <a class="editor-resumen-card" href="#reportes-pendientes">
+            <span class="editor-resumen-icono" aria-hidden="true">🚩</span>
+            <span><strong>{{cantidadReportes}}</strong><small>Reportes por revisar</small></span>
+        </a>
+    </section>
+
+    <section id="preguntas-pendientes" class="editor-seccion">
+        <div class="editor-seccion-cabecera"><div><span class="etiqueta">APROBACIONES</span><h2>Preguntas pendientes</h2></div><span class="editor-contador">{{cantidadPendientes}}</span></div>
+        {{#hayPreguntas}}
+            <div class="editor-lista">
+                {{#preguntas}}
+                    <article class="tarjeta editor-item">
+                        <div class="editor-item-meta"><span class="editor-categoria">{{categoria}}</span><span>Propuesta de {{autor}}</span></div>
+                        <form action="/pregunta/moderar" method="POST">
+                            <input type="hidden" name="id" value="{{id}}">
+                            <label class="editor-label" for="pregunta-{{id}}">Enunciado</label>
+                            <textarea id="pregunta-{{id}}" name="enunciado" maxlength="500" required>{{enunciado}}</textarea>
+                            <div class="editor-respuestas"><strong>Opciones</strong>
+                                {{#opciones}}<div class="editor-respuesta {{#es_correcta}}editor-correcta{{/es_correcta}}"><span>{{texto}}</span>{{#es_correcta}}<b>Correcta</b>{{/es_correcta}}</div>{{/opciones}}
+                            </div>
+                            <div class="editor-acciones">
+                                <button class="boton" type="submit" name="accion" value="aprobar">Aprobar pregunta</button>
+                                <button class="boton boton-secundario" type="submit" name="accion" value="rechazar">Rechazar</button>
+                            </div>
+                        </form>
+                    </article>
+                {{/preguntas}}
+            </div>
+        {{/hayPreguntas}}
+        {{^hayPreguntas}}<div class="editor-vacio">🎉 No hay preguntas pendientes. ¡Todo al día!</div>{{/hayPreguntas}}
+    </section>
+
+    <section id="reportes-pendientes" class="editor-seccion">
+        <div class="editor-seccion-cabecera"><div><span class="etiqueta">COMUNIDAD</span><h2>Reportes de jugadores</h2></div><span class="editor-contador">{{cantidadReportes}}</span></div>
+        {{#hayReportes}}
+            <div class="editor-lista">
+                {{#reportes}}
+                    <article class="tarjeta editor-item editor-reporte">
+                        <div class="editor-item-meta"><span class="editor-categoria">{{categoria}}</span><span>Reportado por {{reportado_por}}</span></div>
+                        <h3>{{enunciado}}</h3>
+                        <p class="editor-motivo"><strong>Motivo:</strong> {{motivo}}</p>
+                        <form action="/pregunta/moderarReporte" method="POST" class="editor-acciones">
+                            <input type="hidden" name="id" value="{{reporte_id}}">
+                            <button class="boton" type="submit" name="accion" value="descartar">Marcar como revisado</button>
+                            <button class="boton boton-secundario" type="submit" name="accion" value="retirar" onclick="return confirm('¿Retirar esta pregunta del juego y cerrar el reporte?')">Retirar pregunta</button>
+                        </form>
+                    </article>
+                {{/reportes}}
+            </div>
+        {{/hayReportes}}
+        {{^hayReportes}}<div class="editor-vacio">No hay reportes pendientes.</div>{{/hayReportes}}
+    </section>
+</main>

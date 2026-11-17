@@ -6,6 +6,8 @@
                 <span id="timer" class="juego-timer" data-segundos="{{segundos}}">{{segundos}}</span>
             {{/jugando}}
             <span class="juego-puntos">Puntos: {{puntajeTotal}}</span>
+            <span class="juego-vidas">♥ {{vidas}} vidas</span>
+            {{#proximaVidaSegundos}}<span class="juego-proxima-vida">+1 vida en <strong class="cuenta-regresiva-vida" data-segundos="{{proximaVidaSegundos}}"></strong></span>{{/proximaVidaSegundos}}
         </div>
 
         {{#jugando}}
@@ -26,6 +28,19 @@
             </form>
         {{/jugando}}
 
+        {{#jugando}}
+            <nav class="estrategias-dock" aria-label="Estrategias canjeables">
+                <div class="dock-saldo"><i class="icono-moneda" aria-hidden="true">$</i> <strong id="saldo-monedas">{{dinero}}</strong></div>
+                <div class="dock-opciones">
+                    <button type="button" class="dock-item" data-estrategia="bomba" title="Bomba: elimina dos respuestas incorrectas, 20 monedas"><span class="dock-icono" aria-hidden="true">💣</span><span class="dock-nombre">Bomba</span><span class="dock-precio">20 <i class="icono-moneda dock-moneda" aria-hidden="true">$</i></span></button>
+                    <button type="button" class="dock-item" data-estrategia="saltear" title="Saltear pregunta sin perder vida, 80 monedas"><span class="dock-icono" aria-hidden="true">⏭️</span><span class="dock-nombre">Saltear</span><span class="dock-precio">80 <i class="icono-moneda dock-moneda" aria-hidden="true">$</i></span></button>
+                    <button type="button" class="dock-item" data-estrategia="escudo" title="Protege una vida ante un error, 60 monedas"><span class="dock-icono" aria-hidden="true">🛡️</span><span class="dock-nombre">Escudo</span><span class="dock-precio">60 <i class="icono-moneda dock-moneda" aria-hidden="true">$</i></span></button>
+                    <button type="button" class="dock-item" data-estrategia="tiempo" title="Agrega 15 segundos, 25 monedas"><span class="dock-icono" aria-hidden="true">⏱️</span><span class="dock-nombre">+15 seg</span><span class="dock-precio">25 <i class="icono-moneda dock-moneda" aria-hidden="true">$</i></span></button>
+                </div>
+            </nav>
+            <p id="mensaje-estrategia" class="mensaje-estrategia" role="status" aria-live="polite"></p>
+        {{/jugando}}
+
         {{^jugando}}
             <div class="juego-opciones">
                 {{#pregunta.opciones}}
@@ -36,10 +51,16 @@
             </div>
 
             <p class="resultado-mensaje {{claseMensaje}}">{{mensaje}}</p>
+            {{#avisoReporte}}<p class="info" role="status">{{avisoReporte}}</p>{{/avisoReporte}}
+            {{#bonificacion}}<p class="racha-bonus">Racha de {{racha}}: +{{bonificacion}} monedas</p>{{/bonificacion}}
+            {{#racha}}<p class="racha-contador">Racha actual: {{racha}} aciertos</p>{{/racha}}
+            {{^sinVidas}}<p class="mensaje">Te quedan {{vidas}} vidas.</p>{{/sinVidas}}
+            {{#sinVidas}}<p class="mensaje resultado-mal">Te quedaste sin vidas.</p>{{/sinVidas}}
             <a id="continuar" href="{{siguiente}}" class="boton juego-continuar"{{#avanzarSolo}} data-avanzar-solo{{/avanzarSolo}}>{{textoSiguiente}}</a>
         {{/jugando}}
     </section>
 
+    {{^jugando}}
     <div style="text-align: center; margin-top: 2rem;">
         <button type="button" onclick="document.getElementById('form-reporte').style.display='block'" style="background: none; border: none; color: #888; text-decoration: underline; cursor: pointer;">
             🚩 Reportar un problema con esta pregunta
@@ -59,6 +80,7 @@
             </form>
         </div>
     </div>
+    {{/jugando}}
 </main>
 
 <script>
@@ -93,6 +115,36 @@
             form.classList.add('enviado');
         });
 
+        var dock = document.querySelector('.estrategias-dock');
+        var avisoDock = document.getElementById('mensaje-estrategia');
+        if (dock) {
+            dock.addEventListener('click', function (evento) {
+                var botonEstrategia = evento.target.closest('[data-estrategia]');
+                if (!botonEstrategia || botonEstrategia.disabled || enviado) return;
+                botonEstrategia.disabled = true;
+                avisoDock.textContent = 'Canjeando…';
+                fetch('/partida/estrategia', {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'accion=' + encodeURIComponent(botonEstrategia.dataset.estrategia)})
+                    .then(function (respuesta) { return respuesta.json().then(function (datos) { if (!respuesta.ok) throw new Error(datos.error || 'No se pudo canjear.'); return datos; }); })
+                    .then(function (datos) {
+                        if (datos.redirect) { window.location.href = datos.redirect; return; }
+                        if (datos.dinero !== undefined) document.getElementById('saldo-monedas').textContent = datos.dinero;
+                        if (datos.eliminar) {
+                            datos.eliminar.forEach(function (idOpcion) {
+                                var opcion = form.querySelector('[name="opcion_id"][value="' + idOpcion + '"]');
+                                if (opcion) { opcion.disabled = true; opcion.classList.add('opcion-eliminada'); }
+                            });
+                            avisoDock.textContent = 'La bomba eliminó dos respuestas incorrectas.';
+                        } else if (datos.accion === 'tiempo') {
+                            totalMs += 15000; limite += 15000;
+                            avisoDock.textContent = '¡Tenés 15 segundos extra!';
+                        } else if (datos.accion === 'escudo') avisoDock.textContent = 'Escudo activo: protege la próxima respuesta incorrecta.';
+                        botonEstrategia.classList.add('dock-usado');
+                        botonEstrategia.title = 'Ya usaste esta estrategia en esta pregunta';
+                    })
+                    .catch(function (error) { avisoDock.textContent = error.message; botonEstrategia.disabled = false; });
+            });
+        }
+
         function actualizar() {
             if (enviado) {
                 return;
@@ -118,3 +170,4 @@
         actualizar();
     })();
 </script>
+<script src="/public/js/vidas-timer.js" defer></script>

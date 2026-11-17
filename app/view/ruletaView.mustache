@@ -1,0 +1,51 @@
+<main class="contenedor-juego casino-page">
+    <section class="tarjeta ruleta-card">
+        <div class="juego-cabecera">
+            <span class="etiqueta">🎰 Mesa de casino</span>
+            <span class="juego-vidas">♥ {{vidas}} vidas</span>
+            {{#proximaVidaSegundos}}<span class="juego-proxima-vida">+1 vida en <strong class="cuenta-regresiva-vida" data-segundos="{{proximaVidaSegundos}}"></strong></span>{{/proximaVidaSegundos}}
+        </div>
+        <h1>Girá la ruleta</h1>
+        <p class="mensaje">La categoría que salga define tu próxima pregunta.</p>
+        <div class="ruleta-contenedor"><div id="ruleta" class="ruleta" style="--ruleta-colores: {{ruletaColores}};" aria-live="polite"><span class="ruleta-bola"></span></div><span class="ruleta-puntero" aria-hidden="true"></span></div>
+        <p id="categoria-resultado" class="ruleta-resultado" aria-live="polite"></p>
+        <form id="form-ruleta" action="/partida/seleccionarCategoria" method="POST">
+            <input type="hidden" id="categoria-id" name="categoria_id" value="">
+            <button type="button" id="girar-ruleta" class="boton boton-casino">Girar ruleta</button>
+        </form>
+        <div id="categorias-ruleta" class="ruleta-categorias" aria-hidden="true">
+            {{#categorias}}<span data-id="{{id}}" data-nombre="{{nombre}}" data-color="{{color}}" style="--color-categoria: {{color}};">{{nombre}}</span>{{/categorias}}
+        </div>
+    </section>
+</main>
+<script>
+(function () {
+    var boton = document.getElementById('girar-ruleta');
+    var form = document.getElementById('form-ruleta');
+    var rueda = document.getElementById('ruleta');
+    var salida = document.getElementById('categoria-resultado');
+    var id = document.getElementById('categoria-id');
+    var categorias = Array.prototype.slice.call(document.querySelectorAll('#categorias-ruleta span'));
+    boton.addEventListener('click', function () {
+        if (!categorias.length) return;
+        boton.disabled = true;
+        var categoria = categorias[Math.floor(Math.random() * categorias.length)];
+        var indice = categorias.indexOf(categoria);
+        var anguloSector = 360 / categorias.length;
+        var giroFinal = (5 * 360) - ((indice + 0.5) * anguloSector);
+        rueda.style.transform = 'rotate(' + giroFinal + 'deg)';
+        setTimeout(function () {
+            salida.textContent = 'Salió: ' + categoria.dataset.nombre;
+            id.value = categoria.dataset.id;
+            salida.style.setProperty('--color-categoria', categoria.dataset.color);
+            salida.classList.add('categoria-elegida');
+            categorias.forEach(function (item) { item.classList.toggle('categoria-activa', item === categoria); });
+            boton.textContent = 'Jugar esta categoría';
+            boton.textContent = 'Cargando pregunta...';
+            boton.disabled = true;
+            setTimeout(function () { form.submit(); }, 1100);
+        }, 4300);
+    });
+})();
+</script>
+<script src="/public/js/vidas-timer.js" defer></script>

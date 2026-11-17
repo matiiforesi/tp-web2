@@ -79,6 +79,9 @@ class UsuarioController
         $_SESSION['usuario'] = $usuarioValido['usuario'];
         $_SESSION['rol_id'] = (int)$usuarioValido['rol_id'];
 
+        if (in_array((int)$usuarioValido['rol_id'], [2, 3], true)) {
+            Redirect::to('/pregunta/inicio');
+        }
         Redirect::to('/usuario/lobby');
     }
 
@@ -90,9 +93,9 @@ class UsuarioController
         }
 
         $usuarioId = (int)$_SESSION['usuario_id'];
+        $recursos = $this->partidas->premiarRankingDiario($usuarioId);
 
-        // Detecta el abandono en solo /partida/jugar y /partida/nueva para que un
-        // pedido suelto no pueda terminar el juego.
+        // Solo las páginas de partida detectan abandonos; abrir el lobby no termina el juego.
         $aviso = $_SESSION['aviso_lobby'] ?? null;
         unset($_SESSION['aviso_lobby']);
 
@@ -102,6 +105,10 @@ class UsuarioController
             'aviso' => $aviso,
             'usuario' => $_SESSION['usuario'],
             'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
+            'vidas' => $recursos['vidas'],
+            'dinero' => $recursos['dinero'],
+            'proximaVidaSegundos' => $recursos['proxima_vida_segundos'],
+            'minutosPorVida' => \app\model\PartidaModel::MINUTOS_POR_VIDA,
             'partidas' => $partidas,
             'hayPartidas' => !empty($partidas),
         ]);
@@ -271,8 +278,7 @@ class UsuarioController
             return;
         }
 
-        // Si el mail falla la cuenta se crea igual, el servicio lo registra en el log
-        // y se le indica al usuario que pida el reenvio del link.
+        // Si falla el correo, la cuenta se conserva y el usuario puede pedir otro enlace.
         $mailEnviado = $this->verificacion->enviarMail($usuarioId, $datos['email'], $datos['nombre_completo']);
 
         $_SESSION['registro_exitoso'] = [
