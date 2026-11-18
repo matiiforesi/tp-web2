@@ -1,5 +1,4 @@
 config/config.ini
-/.htaccess
 public/uploads/*
 !public/uploads/.htaccess
 !public/uploads/.gitkeep
