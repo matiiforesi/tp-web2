@@ -1,0 +1,383 @@
+/* Panel de administrador. Mobile first: base para celular, mejoras con min-width. */
+
+.contenedor.admin {
+    width: min(100% - 1.25rem, 1100px);
+}
+
+.admin-cabecera {
+    display: grid;
+    gap: .75rem;
+    margin-bottom: 1rem;
+}
+
+.admin-cabecera h1 {
+    margin: .2rem 0 .4rem;
+    font-size: clamp(1.6rem, 6vw, 2.4rem);
+}
+
+.admin-meta {
+    margin: 0;
+}
+
+.admin-imprimir {
+    width: 100%;
+    justify-content: center;
+    min-height: 2.8rem;
+    cursor: pointer;
+}
+
+.admin-periodos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
+    margin-bottom: 1rem;
+}
+
+.admin-periodos-titulo {
+    color: #c7d0df;
+    font-size: .85rem;
+    width: 100%;
+}
+
+.admin-periodo {
+    flex: 1 1 calc(50% - .4rem);
+    min-height: 2.6rem;
+    display: grid;
+    place-items: center;
+    padding: .4rem .6rem;
+    border: 1px solid #8ea2c0;
+    border-radius: .6rem;
+    background: #17233b;
+    color: #f7f1df;
+    font-size: .9rem;
+    text-decoration: none;
+    text-align: center;
+}
+
+.admin-periodo:hover, .admin-periodo:focus-visible {
+    border-color: #f4d35e;
+    background: #263c67;
+}
+
+.admin-periodo-activo {
+    border-color: #e4b93f;
+    background: #3a2f10;
+    color: #f4d35e;
+    font-weight: 700;
+}
+
+.admin-periodo-nota {
+    margin: 0 0 1rem;
+    font-size: .85rem;
+}
+
+.admin-titulo {
+    margin: 0 0 .6rem;
+    font-size: 1.15rem;
+}
+
+/* Tarjetas de metricas: 1 columna en celular. */
+.admin-metricas {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .75rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-granularidad {
+    display: flex;
+    gap: .4rem;
+    margin: .5rem 0;
+}
+
+.admin-gran {
+    flex: 1;
+    min-height: 2.6rem;
+    border: 1px solid #8ea2c0;
+    border-radius: .6rem;
+    background: #17233b;
+    color: #f7f1df;
+    font-size: .9rem;
+    cursor: pointer;
+}
+
+.admin-gran:hover, .admin-gran:focus-visible {
+    border-color: #f4d35e;
+    background: #263c67;
+}
+
+.admin-gran-activo {
+    border-color: #e4b93f;
+    background: #3a2f10;
+    color: #f4d35e;
+    font-weight: 700;
+}
+
+.admin-serie-tablas {
+    display: block;
+}
+
+.admin-metrica {
+    display: grid;
+    gap: .1rem;
+    padding: 1rem;
+    border: 1px solid #d4af3755;
+    border-radius: .9rem;
+    background: linear-gradient(145deg, #17233b, #101827);
+    color: #f7f1df;
+}
+
+.admin-metrica strong {
+    color: #f4d35e;
+    font-size: 2rem;
+    line-height: 1.1;
+}
+
+.admin-metrica span {
+    font-weight: 700;
+}
+
+.admin-metrica small {
+    color: #c7d0df;
+    font-size: .8rem;
+    line-height: 1.5;
+}
+
+.admin-bloque {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #d4af3755;
+    border-radius: .9rem;
+    background: linear-gradient(145deg, #17233b, #101827);
+    min-width: 0;
+}
+
+.admin-doble {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+}
+
+.admin-grafico {
+    position: relative;
+    width: 100%;
+    height: 17rem;
+    margin: .75rem 0 1rem;
+}
+
+.admin-grafico-barras {
+    height: 21rem;
+}
+
+.admin-tabla {
+    min-width: 0;
+    width: 100%;
+}
+
+.admin-caption {
+    caption-side: top;
+    padding: 0 0 .4rem;
+    text-align: left;
+    color: #c7d0df;
+    font-size: .8rem;
+}
+
+.admin-sin-chart {
+    margin-top: 1rem;
+}
+
+.admin-tabla-preguntas td:nth-child(2) {
+    min-width: 12rem;
+}
+
+.admin-metrica {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+    .admin-cabecera {
+        grid-template-columns: 1fr auto;
+        align-items: end;
+    }
+
+    .admin-imprimir {
+        width: auto;
+    }
+
+    .admin-metrica small {
+        font-size: .78rem;
+    }
+
+    .admin-periodos-titulo {
+        width: auto;
+    }
+
+    .admin-periodo {
+        flex: 0 0 auto;
+        padding-inline: 1rem;
+    }
+
+    .admin-metricas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .admin-bloque {
+        padding: 1.25rem;
+    }
+}
+
+@media (min-width: 960px) {
+    .admin-metricas {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .admin-doble {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .admin-gran {
+        flex: 0 0 auto;
+        padding-inline: 1.2rem;
+    }
+
+    .admin-grafico {
+        height: 20rem;
+    }
+}
+
+/* Vista imprimible: papel blanco, texto negro, sin menus ni botones. */
+@media print {
+    @page {
+        margin: 1.5cm;
+    }
+
+    :root, html, body {
+        background: #fff !important;
+        color: #000 !important;
+        color-scheme: light;
+    }
+
+    body {
+        display: block;
+        min-height: 0;
+        overflow: visible !important;
+    }
+
+    html {
+        min-width: 0;
+        overflow: visible !important;
+    }
+
+    .barra-superior, .pie, .admin-imprimir, .admin-periodos,
+    .contenedor.admin::before, .admin-sin-chart {
+        display: none !important;
+    }
+
+    /* 3px de aire a la derecha: si no, el borde externo se corta contra el margen de la hoja. */
+    .contenedor.admin {
+        width: calc(100% - 3px);
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .contenedor.admin * {
+        color: #000 !important;
+        text-shadow: none !important;
+        box-shadow: none !important;
+    }
+
+    .admin-cabecera {
+        display: block;
+        margin-bottom: .5rem;
+    }
+
+    .admin-periodo-nota {
+        display: block;
+        margin: 0 0 .75rem;
+    }
+
+    .admin-granularidad {
+        display: none !important;
+    }
+
+    /* Al imprimir se muestran las tres tablas de partidas aunque en pantalla haya una sola. */
+    .admin-serie-tabla[hidden] {
+        display: block !important;
+    }
+
+    .admin-metricas {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: .4rem;
+    }
+
+    .admin-metrica small {
+        font-size: 8pt;
+    }
+
+    .admin-tabla-preguntas td:nth-child(2) {
+        min-width: 0;
+    }
+
+    .admin-metrica, .admin-bloque {
+        background: #fff !important;
+        border: 1px solid #555 !important;
+        border-radius: 0;
+        padding: .5rem;
+    }
+
+    .admin-metrica strong {
+        font-size: 1.3rem;
+    }
+
+    .admin-bloque {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: .75rem;
+    }
+
+    .admin-doble {
+        display: block;
+    }
+
+    .admin-grafico, .admin-grafico-barras {
+        height: 9cm;
+    }
+
+    .admin-grafico canvas {
+        max-width: 100% !important;
+    }
+
+    .tabla-scroll {
+        overflow: visible;
+        margin: 0;
+    }
+
+    .admin-tabla {
+        min-width: 0;
+        font-size: 10pt;
+        border-collapse: collapse;
+    }
+
+    .admin-tabla th, .admin-tabla td {
+        background: #fff !important;
+        border: 1px solid #777 !important;
+        padding: .25rem .4rem;
+    }
+
+    .admin-tabla th {
+        background: #eee !important;
+    }
+
+    .admin-tabla tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .admin-tabla thead {
+        display: table-header-group;
+    }
+}

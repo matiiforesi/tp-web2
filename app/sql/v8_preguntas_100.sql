@@ -14,7 +14,7 @@ CREATE TEMPORARY TABLE carga_preguntas_100 (
     opcion_b VARCHAR(255) NOT NULL,
     opcion_c VARCHAR(255) NOT NULL,
     opcion_d VARCHAR(255) NOT NULL
-) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MEMORY DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO carga_preguntas_100 VALUES
 ('Historia','Quien fue el primer presidente de la Argentina?','Bernardino Rivadavia','Julio A. Roca','Domingo F. Sarmiento','Manuel Belgrano'),
@@ -121,7 +121,7 @@ INSERT INTO carga_preguntas_100 VALUES
 INSERT INTO pregunta (categoria_id, enunciado, estado)
 SELECT c.id, q.enunciado, 'activa'
 FROM carga_preguntas_100 q
-JOIN categoria c ON c.nombre = q.categoria OR (q.categoria = 'Geografia' AND c.id = 5)
+         JOIN categoria c ON c.nombre = q.categoria OR (q.categoria = 'Geografia' AND c.id = 5)
 WHERE NOT EXISTS (SELECT 1 FROM pregunta p WHERE p.enunciado = q.enunciado);
 
 INSERT INTO opcion (pregunta_id, texto, es_correcta)

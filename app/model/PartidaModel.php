@@ -9,7 +9,6 @@ class PartidaModel
     const VIDAS_MAXIMAS = 5;
     const MINUTOS_POR_VIDA = 30;
     const PREMIOS_RANKING_DIARIO = [1 => 100, 2 => 75, 3 => 50];
-    const AVISO_ABANDONO = 'Perdiste la partida: recargar la pregunta o salir sin responder termina el juego.';
     const SEGUNDOS_POR_PREGUNTA = 15;
     const MARGEN_SEGUNDOS = 2;
 
@@ -87,18 +86,18 @@ class PartidaModel
     public function canjearEstrategia($usuarioId, int $costo): bool
     {
         return $this->db->execute(
-            "UPDATE usuario SET dinero = dinero - ? WHERE id = ? AND dinero >= ?",
-            [$costo, $usuarioId, $costo]
-        ) === 1;
+                "UPDATE usuario SET dinero = dinero - ? WHERE id = ? AND dinero >= ?",
+                [$costo, $usuarioId, $costo]
+            ) === 1;
     }
 
     public function registrarSalto($partidaId, $preguntaId): bool
     {
         return $this->db->execute(
-            "UPDATE partida_pregunta SET opcion_elegida_id = NULL, correcta = 0
+                "UPDATE partida_pregunta SET opcion_elegida_id = NULL, correcta = 0
              WHERE partida_id = ? AND pregunta_id = ? AND correcta IS NULL",
-            [$partidaId, $preguntaId]
-        ) === 1;
+                [$partidaId, $preguntaId]
+            ) === 1;
     }
 
     public function premiarRankingDiario($usuarioId): array

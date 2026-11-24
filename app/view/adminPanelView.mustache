@@ -1,0 +1,381 @@
+<link rel="stylesheet" href="/public/css/admin.css">
+
+<main class="contenedor admin">
+    <header class="admin-cabecera">
+        <div>
+            <span class="etiqueta">Panel de administración</span>
+            <h1>Métricas y gráficos</h1>
+            <p class="mensaje admin-meta">Hola, {{nombreAdmin}}. Datos actualizados al {{fechaGeneracion}}.</p>
+        </div>
+        <button type="button" id="imprimir" class="boton admin-imprimir">🖨 Imprimir o Guardar en PDF</button>
+    </header>
+
+    <nav class="admin-periodos" aria-label="Período">
+        <span class="admin-periodos-titulo">Período:</span>
+        {{#opcionesPeriodo}}
+            <a href="/admin/panel?periodo={{clave}}" class="admin-periodo{{#activo}}
+            admin-periodo-activo{{/activo}}"{{#activo}} aria-current="true"{{/activo}}>{{etiqueta}}</a>
+        {{/opcionesPeriodo}}
+    </nav>
+    <p class="nota admin-periodo-nota">Período seleccionado: <strong>{{periodoEtiqueta}}</strong>. Aplica a todo el
+        panel, salvo a los totales que lo indican (jugadores, estado de las preguntas y reportes pendientes).</p>
+
+    <section aria-labelledby="titulo-metricas">
+        <h2 id="titulo-metricas" class="admin-titulo">Métricas</h2>
+        <div class="admin-metricas">
+            <article class="admin-metrica">
+                <strong>{{m.jugadores}}</strong>
+                <span>Jugadores</span>
+                <small>Cuentas activadas, en total<br>{{m.jugadoresActivos}} jugaron en el período</small>
+            </article>
+            <article class="admin-metrica">
+                <strong>{{m.usuariosNuevos}}</strong>
+                <span>Usuarios nuevos</span>
+                <small>Cuentas activadas registradas en el período</small>
+            </article>
+            <article class="admin-metrica">
+                <strong>{{m.partidasPeriodo}}</strong>
+                <span>Partidas</span>
+                <small>Iniciadas en el período<br>Total: {{m.partidasTotal}}</small>
+            </article>
+            <article class="admin-metrica">
+                <strong>{{m.preguntasMostradas}}</strong>
+                <span>Preguntas mostradas</span>
+                <small>En el período<br>Promedio: {{m.promedioPreguntasPorPartida}} por partida</small>
+            </article>
+            <article class="admin-metrica">
+                <strong>{{m.aciertoGlobal}}</strong>
+                <span>Aciertos</span>
+                <small>{{m.correctas}} correctas de {{m.respondidas}} respondidas en el período</small>
+            </article>
+            <article class="admin-metrica">
+                <strong>{{m.cargadasPeriodo}}</strong>
+                <span>Preguntas cargadas</span>
+                <small>En el período: sistema {{m.origenSistema}}, jugadores {{m.origenJugadores}},
+                    editores {{m.origenEditores}}<br> Total: {{m.preguntasTotal}}</small>
+            </article>
+            <article class="admin-metrica">
+                <strong>{{m.reportesPendientes}}</strong>
+                <span>Reportes pendientes</span>
+                <small>Por revisar, en total<br>{{m.reportesNuevos}} nuevos en el período</small>
+            </article>
+        </div>
+    </section>
+
+    <section class="admin-bloque" aria-labelledby="titulo-estados">
+        <h2 id="titulo-estados" class="admin-titulo">Estado de las preguntas</h2>
+        <p class="nota">Total del banco de preguntas (no depende del período).</p>
+        <div class="tabla-scroll">
+            <table class="tabla admin-tabla">
+                <caption class="admin-caption">Preguntas por estado</caption>
+                <thead>
+                <tr>
+                    <th>Estado</th>
+                    <th>Preguntas</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#estadosPreguntas}}
+                    <tr>
+                        <td>{{etiqueta}}</td>
+                        <td>{{total}}</td>
+                    </tr>{{/estadosPreguntas}}
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td><strong>{{m.preguntasTotal}}</strong></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="admin-bloque" aria-labelledby="titulo-serie">
+        <h2 id="titulo-serie" class="admin-titulo">Partidas por día, semana y mes</h2>
+        {{#haySeries}}
+            <div class="admin-granularidad" role="group" aria-label="Agrupar partidas por">
+                <button type="button" class="admin-gran admin-gran-activo" data-g="dia" aria-pressed="true">Día</button>
+                <button type="button" class="admin-gran" data-g="semana" aria-pressed="false">Semana</button>
+                <button type="button" class="admin-gran" data-g="mes" aria-pressed="false">Mes</button>
+            </div>
+            <div class="admin-grafico">
+                <canvas id="grafico-serie" role="img" aria-label="Partidas jugadas a lo largo del tiempo"></canvas>
+            </div>
+            <div class="admin-serie-tablas">
+                <div class="tabla-scroll admin-serie-tabla" data-g="dia">
+                    <table class="tabla admin-tabla">
+                        <caption class="admin-caption">Partidas por día (solo días con partidas)</caption>
+                        <thead>
+                        <tr>
+                            <th>Día</th>
+                            <th>Partidas</th>
+                        </tr>
+                        </thead>
+                        <tbody>{{#tablaSerieDia}}
+                            <tr>
+                                <td>{{etiqueta}}</td>
+                                <td>{{total}}</td>
+                            </tr>{{/tablaSerieDia}}</tbody>
+                    </table>
+                </div>
+                <div class="tabla-scroll admin-serie-tabla" data-g="semana">
+                    <table class="tabla admin-tabla">
+                        <caption class="admin-caption">Partidas por semana (desde el lunes)</caption>
+                        <thead>
+                        <tr>
+                            <th>Semana</th>
+                            <th>Partidas</th>
+                        </tr>
+                        </thead>
+                        <tbody>{{#tablaSerieSemana}}
+                            <tr>
+                                <td>{{etiqueta}}</td>
+                                <td>{{total}}</td>
+                            </tr>{{/tablaSerieSemana}}</tbody>
+                    </table>
+                </div>
+                <div class="tabla-scroll admin-serie-tabla" data-g="mes">
+                    <table class="tabla admin-tabla">
+                        <caption class="admin-caption">Partidas por mes</caption>
+                        <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Partidas</th>
+                        </tr>
+                        </thead>
+                        <tbody>{{#tablaSerieMes}}
+                            <tr>
+                                <td>{{etiqueta}}</td>
+                                <td>{{total}}</td>
+                            </tr>{{/tablaSerieMes}}</tbody>
+                    </table>
+                </div>
+            </div>
+        {{/haySeries}}
+        {{^haySeries}}<p class="nota">No hay partidas en el período.</p>{{/haySeries}}
+    </section>
+
+    <section class="admin-bloque" aria-labelledby="titulo-aciertos">
+        <h2 id="titulo-aciertos" class="admin-titulo">Porcentaje de aciertos por usuario</h2>
+        <p class="nota">Respuestas correctas sobre respondidas en el período. Solo jugadores con {{minimoRespuestas}}
+            respuestas o más. El gráfico muestra el top 10.</p>
+        {{#hayAciertos}}
+            <div class="admin-grafico admin-grafico-barras">
+                <canvas id="grafico-aciertos" role="img"
+                        aria-label="Porcentaje de aciertos de los diez mejores jugadores"></canvas>
+            </div>
+            <div class="tabla-scroll">
+                <table class="tabla admin-tabla">
+                    <caption class="admin-caption">Aciertos por usuario</caption>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Jugador</th>
+                        <th>País</th>
+                        <th>Correctas</th>
+                        <th>Respondidas</th>
+                        <th>Aciertos</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#tablaAciertos}}
+                        <tr>
+                            <td>{{posicion}}</td>
+                            <td>{{usuario}}</td>
+                            <td>{{pais}}</td>
+                            <td>{{correctas}}</td>
+                            <td>{{respondidas}}</td>
+                            <td><strong>{{porcentaje}} %</strong></td>
+                        </tr>
+                    {{/tablaAciertos}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hayAciertos}}
+        {{^hayAciertos}}
+            <p class="nota">En el período no hay jugadores con {{minimoRespuestas}} respuestas.</p>{{/hayAciertos}}
+    </section>
+
+    <section class="admin-bloque" aria-labelledby="titulo-categorias">
+        <h2 id="titulo-categorias" class="admin-titulo">Aciertos por categoría</h2>
+        {{#hayRespuestas}}
+            <div class="admin-grafico">
+                <canvas id="grafico-categorias" role="img" aria-label="Porcentaje de aciertos por categoría"></canvas>
+            </div>
+        {{/hayRespuestas}}
+        {{^hayRespuestas}}<p class="nota">No hay respuestas en el período.</p>{{/hayRespuestas}}
+        <div class="tabla-scroll">
+            <table class="tabla admin-tabla">
+                <caption class="admin-caption">Aciertos por categoría</caption>
+                <thead>
+                <tr>
+                    <th>Categoría</th>
+                    <th>Correctas</th>
+                    <th>Respondidas</th>
+                    <th>Aciertos</th>
+                </tr>
+                </thead>
+                <tbody>{{#tablaCategorias}}
+                    <tr>
+                        <td>{{categoria}}</td>
+                        <td>{{correctas}}</td>
+                        <td>{{respondidas}}</td>
+                        <td>{{porcentaje}}</td>
+                    </tr>{{/tablaCategorias}}</tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="admin-bloque" aria-labelledby="titulo-dificultad">
+        <h2 id="titulo-dificultad" class="admin-titulo">Preguntas más difíciles y más fáciles</h2>
+        <p class="nota">Según el porcentaje de aciertos en el período. Solo preguntas respondidas {{minimoIntentos}}
+            veces o más.</p>
+        {{#hayDificultad}}
+            <div class="admin-doble">
+                <div>
+                    <div class="tabla-scroll">
+                        <table class="tabla admin-tabla admin-tabla-preguntas">
+                            <caption class="admin-caption">Más difíciles</caption>
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Pregunta</th>
+                                <th>Categoría</th>
+                                <th>Veces</th>
+                                <th>Aciertos</th>
+                            </tr>
+                            </thead>
+                            <tbody>{{#dificiles}}
+                                <tr>
+                                    <td>{{posicion}}</td>
+                                    <td>{{enunciado}}</td>
+                                    <td>{{categoria}}</td>
+                                    <td>{{intentos}}</td>
+                                    <td><strong>{{porcentaje}} %</strong></td>
+                                </tr>{{/dificiles}}</tbody>
+                        </table>
+                    </div>
+                </div>
+                <div>
+                    <div class="tabla-scroll">
+                        <table class="tabla admin-tabla admin-tabla-preguntas">
+                            <caption class="admin-caption">Más fáciles</caption>
+                            <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Pregunta</th>
+                                <th>Categoría</th>
+                                <th>Veces</th>
+                                <th>Aciertos</th>
+                            </tr>
+                            </thead>
+                            <tbody>{{#faciles}}
+                                <tr>
+                                    <td>{{posicion}}</td>
+                                    <td>{{enunciado}}</td>
+                                    <td>{{categoria}}</td>
+                                    <td>{{intentos}}</td>
+                                    <td><strong>{{porcentaje}} %</strong></td>
+                                </tr>{{/faciles}}</tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {{/hayDificultad}}
+        {{^hayDificultad}}
+            <p class="nota">En el período ninguna pregunta se respondió {{minimoIntentos}} veces.</p>{{/hayDificultad}}
+    </section>
+
+    <section class="admin-bloque" aria-labelledby="titulo-paises">
+        <h2 id="titulo-paises" class="admin-titulo">Usuarios por país</h2>
+        <p class="nota">Usuarios registrados en el período.</p>
+        {{#hayPaises}}
+            <div class="admin-grafico">
+                <canvas id="grafico-paises" role="img" aria-label="Usuarios por país"></canvas>
+            </div>
+            <div class="tabla-scroll">
+                <table class="tabla admin-tabla">
+                    <caption class="admin-caption">Usuarios por país</caption>
+                    <thead>
+                    <tr>
+                        <th>País</th>
+                        <th>Usuarios</th>
+                        <th>%</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{#tablaPaises}}
+                        <tr>
+                            <td>{{pais}}</td>
+                            <td>{{total}}</td>
+                            <td>{{porcentaje}} %</td>
+                        </tr>{{/tablaPaises}}
+                    </tbody>
+                </table>
+            </div>
+        {{/hayPaises}}
+        {{^hayPaises}}<p class="nota">No hay usuarios registrados en el período.</p>{{/hayPaises}}
+    </section>
+
+    <div class="admin-doble">
+        <section class="admin-bloque" aria-labelledby="titulo-sexo">
+            <h2 id="titulo-sexo" class="admin-titulo">Usuarios por sexo</h2>
+            <p class="nota">Usuarios registrados en el período.</p>
+            {{#hayUsuarios}}
+                <div class="admin-grafico">
+                    <canvas id="grafico-sexo" role="img" aria-label="Usuarios por sexo"></canvas>
+                </div>{{/hayUsuarios}}
+            <div class="tabla-scroll">
+                <table class="tabla admin-tabla">
+                    <caption class="admin-caption">Usuarios por sexo</caption>
+                    <thead>
+                    <tr>
+                        <th>Sexo</th>
+                        <th>Usuarios</th>
+                        <th>%</th>
+                    </tr>
+                    </thead>
+                    <tbody>{{#tablaSexo}}
+                        <tr>
+                            <td>{{etiqueta}}</td>
+                            <td>{{total}}</td>
+                            <td>{{porcentaje}} %</td>
+                        </tr>{{/tablaSexo}}</tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="admin-bloque" aria-labelledby="titulo-edad">
+            <h2 id="titulo-edad" class="admin-titulo">Usuarios por grupo de edad</h2>
+            <p class="nota">Usuarios registrados en el período.</p>
+            {{#hayUsuarios}}
+                <div class="admin-grafico">
+                    <canvas id="grafico-edad" role="img" aria-label="Usuarios por grupo de edad"></canvas>
+                </div>{{/hayUsuarios}}
+            <div class="tabla-scroll">
+                <table class="tabla admin-tabla">
+                    <caption class="admin-caption">Usuarios por grupo de edad</caption>
+                    <thead>
+                    <tr>
+                        <th>Grupo</th>
+                        <th>Usuarios</th>
+                        <th>%</th>
+                    </tr>
+                    </thead>
+                    <tbody>{{#tablaEdad}}
+                        <tr>
+                            <td>{{etiqueta}}</td>
+                            <td>{{total}}</td>
+                            <td>{{porcentaje}} %</td>
+                        </tr>{{/tablaEdad}}</tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <p id="aviso-sin-chart" class="nota admin-sin-chart" hidden>No se pudo cargar la librería de gráficos (Chart.js).
+        Las tablas muestran los mismos datos.</p>
+</main>
+
+<script type="application/json" id="datos-graficos">{{{graficosJson}}}</script>
+<script src="/public/js/chart.umd.min.js"></script>
+<script src="/public/js/admin-graficos.js"></script>

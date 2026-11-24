@@ -56,12 +56,11 @@ class PartidaController
             \Redirect::to('/usuario/lobby');
         }
 
-        // Si el jugador deja una pregunta sin responder, recarga o vuelve atrás, la partida termina.
-        if ($this->partidas->preguntaPendiente($partidaId) !== null) {
-            $this->partidas->cerrarEnCurso($usuarioId);
-            unset($_SESSION['partida_id']);
-            $_SESSION['aviso_lobby'] = PartidaModel::AVISO_ABANDONO;
-            \Redirect::to('/usuario/lobby');
+        // Si hay una pregunta sin responder (recarga, otra pestaña, vuelta atrás), se restaura la misma con el tiempo que le quedaba.
+        $pendiente = $this->partidas->preguntaPendiente($partidaId);
+        if ($pendiente !== null) {
+            $this->restaurarPregunta($partidaId, $usuarioId, $pendiente, $recursos);
+            return;
         }
 
         if (!isset($_SESSION['categoria_ruleta'])) {
@@ -106,7 +105,7 @@ class PartidaController
         $_SESSION['orden_opciones'] = array_map('intval', array_column($pregunta['opciones'], 'id'));
         unset($_SESSION['resultado']);
 
-        // La pregunta no se guarda en caché para detectar recargas y vueltas atrás como abandono.
+        // La pregunta no se guarda en caché: cada carga consulta al servidor cuánto tiempo queda.
         header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
         header('Pragma: no-cache');
 
@@ -115,11 +114,76 @@ class PartidaController
             'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
             'jugando' => true,
             'segundos' => PartidaModel::SEGUNDOS_POR_PREGUNTA,
+            'segundosTotales' => PartidaModel::SEGUNDOS_POR_PREGUNTA,
             'vidas' => $recursos['vidas'],
             'proximaVidaSegundos' => $recursos['proxima_vida_segundos'],
             'dinero' => $recursos['dinero'],
             'estrategias' => true,
         ]);
+    }
+
+    // Muestra de nuevo la pregunta pendiente con el tiempo restante calculado en el servidor.
+    private function restaurarPregunta($partidaId, $usuarioId, $pendiente, $recursos): void
+    {
+        $preguntaId = (int)$pendiente['pregunta_id'];
+        $clave = $partidaId . ':' . $preguntaId;
+        $total = PartidaModel::SEGUNDOS_POR_PREGUNTA + $this->tiempoExtra($clave);
+        $restante = $total - (int)$pendiente['segundos'];
+
+        // Si el tiempo se agotó mientras la página estaba cerrada o recargándose, cuenta como no respondida.
+        if ($restante <= 0) {
+            $this->procesarRespuesta($partidaId, $usuarioId, $pendiente, null);
+            return;
+        }
+
+        $pregunta = $this->model->getPreguntaPorId($preguntaId);
+        if ($pregunta === null) {
+            // La pregunta dejó de estar activa (por ejemplo, fue reportada): se saltea sin penalizar.
+            $this->partidas->registrarSalto($partidaId, $preguntaId);
+            unset($_SESSION['categoria_ruleta']);
+            \Redirect::to('/partida/jugar');
+        }
+
+        // Conserva el orden de las opciones que vio el jugador.
+        $ids = array_map('intval', array_column($pregunta['opciones'], 'id'));
+        $orden = array_map('intval', $_SESSION['orden_opciones'] ?? []);
+        if (count($orden) === count($ids) && !array_diff($ids, $orden)) {
+            $posicion = array_flip($orden);
+            usort($pregunta['opciones'], static fn($a, $b) => $posicion[(int)$a['id']] <=> $posicion[(int)$b['id']]);
+        } else {
+            $_SESSION['orden_opciones'] = $ids;
+        }
+
+        // Restaura las ayudas ya compradas al recargar en una pregunta.
+        $usadas = $_SESSION['estrategias_usadas'][$clave] ?? [];
+        $eliminadas = array_map('intval', $_SESSION['bomba_eliminadas'][$clave] ?? []);
+        foreach ($pregunta['opciones'] as &$opcion) {
+            $opcion['eliminada'] = in_array((int)$opcion['id'], $eliminadas, true);
+        }
+        unset($opcion);
+
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+
+        $this->render->renderiza('partida', [
+            'pregunta' => $pregunta,
+            'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
+            'jugando' => true,
+            'segundos' => $restante,
+            'segundosTotales' => $total,
+            'vidas' => $recursos['vidas'],
+            'proximaVidaSegundos' => $recursos['proxima_vida_segundos'],
+            'dinero' => $recursos['dinero'],
+            'estrategias' => true,
+            'usadaBomba' => !empty($usadas['bomba']),
+            'usadaEscudo' => !empty($usadas['escudo']),
+            'usadaTiempo' => !empty($usadas['tiempo']),
+        ]);
+    }
+
+    private function tiempoExtra($clave): int
+    {
+        return (($_SESSION['tiempo_extra_pregunta'] ?? null) === $clave) ? 15 : 0;
     }
 
     // POST /partida/estrategia: compra y activa una ayuda en la pregunta actual.
@@ -145,11 +209,15 @@ class PartidaController
         }
         if ($accion === 'saltear') {
             if (!$this->partidas->canjearEstrategia($usuarioId, $costos[$accion])) {
-                http_response_code(402); echo json_encode(['error' => 'No tenés monedas suficientes.']); return;
+                http_response_code(402);
+                echo json_encode(['error' => 'No tenés monedas suficientes.']);
+                return;
             }
             if (!$this->partidas->registrarSalto($partidaId, $preguntaId)) {
                 $this->partidas->acreditarDinero($usuarioId, $costos[$accion]);
-                http_response_code(409); echo json_encode(['error' => 'La pregunta ya fue respondida.']); return;
+                http_response_code(409);
+                echo json_encode(['error' => 'La pregunta ya fue respondida.']);
+                return;
             }
             $_SESSION['estrategias_usadas'][$clave][$accion] = true;
             $_SESSION['racha'] = 0;
@@ -158,13 +226,16 @@ class PartidaController
             return;
         }
         if (!$this->partidas->canjearEstrategia($usuarioId, $costos[$accion])) {
-            http_response_code(402); echo json_encode(['error' => 'No tenés monedas suficientes.']); return;
+            http_response_code(402);
+            echo json_encode(['error' => 'No tenés monedas suficientes.']);
+            return;
         }
         $_SESSION['estrategias_usadas'][$clave][$accion] = true;
         if ($accion === 'bomba') {
             $pregunta = $this->model->getPreguntaPorId($preguntaId);
             $incorrectas = array_values(array_map(static fn($opcion) => (int)$opcion['id'], array_filter($pregunta['opciones'] ?? [], static fn($opcion) => (int)$opcion['es_correcta'] !== 1)));
             shuffle($incorrectas);
+            $_SESSION['bomba_eliminadas'][$clave] = array_slice($incorrectas, 0, 2);
             echo json_encode(['eliminar' => array_slice($incorrectas, 0, 2), 'dinero' => $this->partidas->recursosUsuario($usuarioId)['dinero']]);
             return;
         }
@@ -227,8 +298,15 @@ class PartidaController
             return;
         }
 
+        $this->procesarRespuesta($partidaId, $usuarioId, $pendiente, $opcion);
+    }
+
+    // Registra la respuesta (o su ausencia si $opcion es null) y redirige al resultado.
+    private function procesarRespuesta($partidaId, $usuarioId, $pendiente, $opcion): void
+    {
+        $preguntaId = (int)$pendiente['pregunta_id'];
         $claveEstrategia = $partidaId . ':' . $preguntaId;
-        $tiempoExtra = (($_SESSION['tiempo_extra_pregunta'] ?? null) === $claveEstrategia) ? 15 : 0;
+        $tiempoExtra = $this->tiempoExtra($claveEstrategia);
         $limite = PartidaModel::SEGUNDOS_POR_PREGUNTA + $tiempoExtra + PartidaModel::MARGEN_SEGUNDOS;
         $tiempoAgotado = (int)$pendiente['segundos'] > $limite;
         $elegidaId = ($opcion !== null && !$tiempoAgotado) ? (int)$opcion['id'] : null;
@@ -245,7 +323,7 @@ class PartidaController
         }
 
         $escudoUsado = (($_SESSION['escudo_pregunta'] ?? null) === $claveEstrategia && !$correcta);
-        unset($_SESSION['escudo_pregunta'], $_SESSION['tiempo_extra_pregunta']);
+        unset($_SESSION['escudo_pregunta'], $_SESSION['tiempo_extra_pregunta'], $_SESSION['bomba_eliminadas'][$claveEstrategia]);
 
         $recursosActualizados = $this->partidas->recursosUsuario($usuarioId);
         $_SESSION['vidas'] = $recursosActualizados['vidas'];
@@ -334,7 +412,8 @@ class PartidaController
             'claseMensaje' => $resultado['correcta'] ? 'resultado-ok' : 'resultado-mal',
             'siguiente' => $siguiente,
             'textoSiguiente' => $resultado['correcta'] ? 'Siguiente pregunta' : 'Ver resultado',
-            'avanzarSolo' => !$sinVidas && !$resultado['correcta'] && $resultado['elegida_id'] !== null,
+            // Si fallo (o se acabó el tiempo) y la partida sigue, el jugador decide cuándo continuar: no hay avance automático.
+            'falloYContinua' => !$resultado['correcta'] && !$sinVidas,
             'vidas' => $recursos['vidas'],
             'sinVidas' => $sinVidas,
             'racha' => (int)($resultado['racha'] ?? 0),

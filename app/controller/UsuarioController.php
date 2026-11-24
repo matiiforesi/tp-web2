@@ -79,7 +79,10 @@ class UsuarioController
         $_SESSION['usuario'] = $usuarioValido['usuario'];
         $_SESSION['rol_id'] = (int)$usuarioValido['rol_id'];
 
-        if (in_array((int)$usuarioValido['rol_id'], [2, 3], true)) {
+        if ((int)$usuarioValido['rol_id'] === 3) {
+            Redirect::to('/admin/panel');
+        }
+        if ((int)$usuarioValido['rol_id'] === 2) {
             Redirect::to('/pregunta/inicio');
         }
         Redirect::to('/usuario/lobby');

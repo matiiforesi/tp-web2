@@ -21,6 +21,9 @@
                 <?php if (in_array((int)($_SESSION['rol_id'] ?? 0), [2, 3], true)): ?>
                     <a href="/pregunta/inicio" class="boton">Panel editor</a>
                 <?php endif; ?>
+                <?php if ((int)($_SESSION['rol_id'] ?? 0) === 3): ?>
+                    <a href="/admin/panel" class="boton">Panel admin</a>
+                <?php endif; ?>
                 <a href="/usuario/lobby" class="boton">Mesa principal</a>
                 <a href="/usuario/logout" class="boton boton-secundario">Salir</a>
             <?php else: ?>

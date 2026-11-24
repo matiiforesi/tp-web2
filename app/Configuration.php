@@ -2,12 +2,14 @@
 
 namespace app;
 
+use app\controller\AdminController;
 use app\controller\GrupoController;
 use app\controller\UsuarioController;
 use app\controller\HomeController;
 use app\controller\PartidaController;
 use app\controller\PreguntaController;
 use app\controller\RankingController;
+use app\model\AdminModel;
 use app\model\PreguntaModel;
 use app\model\GrupoModel;
 use app\model\PartidaModel;
@@ -74,6 +76,14 @@ class Configuration
         );
     }
 
+    public function getAdminController()
+    {
+        return new AdminController(
+            new AdminModel($this->getDatabase()),
+            $this->getRender()
+        );
+    }
+
     public function getPreguntaController()
     {
         return new PreguntaController(
@@ -82,7 +92,7 @@ class Configuration
         );
     }
 
-        // Los privados
+    // Los privados
     private function getGrupoModel()
     {
         return new GrupoModel();
