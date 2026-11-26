@@ -36,6 +36,11 @@ class AdminController
         $sexo = $this->model->usuariosPorSexo($periodo);
         $edad = $this->model->usuariosPorEdad($periodo);
 
+        $esTodo = $periodo === 'todo';
+        $paisesTotal = $esTodo ? $paises : $this->model->usuariosPorPais('todo');
+        $sexoTotal = $esTodo ? $sexo : $this->model->usuariosPorSexo('todo');
+        $edadTotal = $esTodo ? $edad : $this->model->usuariosPorEdad('todo');
+
         $totalUsuarios = $metricas['usuariosNuevos'];
 
         $tablaAciertos = [];
@@ -60,32 +65,14 @@ class AdminController
             ];
         }
 
-        $tablaPaises = [];
-        foreach ($paises as $fila) {
-            $tablaPaises[] = [
-                'pais' => $fila['pais'],
-                'total' => (int)$fila['total'],
-                'porcentaje' => $this->porcentajeDe((int)$fila['total'], $totalUsuarios),
-            ];
-        }
+        $tablaPaises = $this->tablaPaises($paises, $totalUsuarios);
+        $tablaSexo = $this->tablaConteo($sexo, AdminModel::ETIQUETAS_SEXO, $totalUsuarios);
+        $tablaEdad = $this->tablaConteo($edad, AdminModel::ETIQUETAS_EDAD, $totalUsuarios);
 
-        $tablaSexo = [];
-        foreach (AdminModel::ETIQUETAS_SEXO as $clave => $etiqueta) {
-            $tablaSexo[] = [
-                'etiqueta' => $etiqueta,
-                'total' => $sexo[$clave],
-                'porcentaje' => $this->porcentajeDe($sexo[$clave], $totalUsuarios),
-            ];
-        }
-
-        $tablaEdad = [];
-        foreach (AdminModel::ETIQUETAS_EDAD as $clave => $etiqueta) {
-            $tablaEdad[] = [
-                'etiqueta' => $etiqueta,
-                'total' => $edad[$clave],
-                'porcentaje' => $this->porcentajeDe($edad[$clave], $totalUsuarios),
-            ];
-        }
+        $totalHistorico = array_sum($sexoTotal);
+        $tablaPaisesTotal = $this->tablaPaises($paisesTotal, $totalHistorico);
+        $tablaSexoTotal = $this->tablaConteo($sexoTotal, AdminModel::ETIQUETAS_SEXO, $totalHistorico);
+        $tablaEdadTotal = $this->tablaConteo($edadTotal, AdminModel::ETIQUETAS_EDAD, $totalHistorico);
 
         $estados = [];
         foreach (AdminModel::ETIQUETAS_ESTADO_PREGUNTA as $clave => $etiqueta) {
@@ -118,14 +105,18 @@ class AdminController
                 }, $categorias),
             ],
             'series' => $series,
-            'paises' => $this->paisesParaGrafico($paises),
+            // Cada grafico de usuarios trae los datos de los dos modos; el JS alterna entre ellos.
+            'paises' => [
+                'periodo' => $this->paisesParaGrafico($paises),
+                'total' => $this->paisesParaGrafico($paisesTotal),
+            ],
             'sexo' => [
-                'labels' => array_values(AdminModel::ETIQUETAS_SEXO),
-                'valores' => array_values($sexo),
+                'periodo' => $this->conteoParaGrafico($sexo, AdminModel::ETIQUETAS_SEXO),
+                'total' => $this->conteoParaGrafico($sexoTotal, AdminModel::ETIQUETAS_SEXO),
             ],
             'edad' => [
-                'labels' => array_values(AdminModel::ETIQUETAS_EDAD),
-                'valores' => array_values($edad),
+                'periodo' => $this->conteoParaGrafico($edad, AdminModel::ETIQUETAS_EDAD),
+                'total' => $this->conteoParaGrafico($edadTotal, AdminModel::ETIQUETAS_EDAD),
             ],
         ];
 
@@ -145,21 +136,61 @@ class AdminController
             'dificiles' => $this->tablaDificultad($dificultad['dificiles']),
             'faciles' => $this->tablaDificultad($dificultad['faciles']),
             'hayDificultad' => !empty($dificultad['dificiles']),
+            'hayFaciles' => !empty($dificultad['faciles']),
             'haySeries' => $metricas['partidasPeriodo'] > 0,
             'tablaSerieDia' => $this->tablaSerie($series['dia']),
             'tablaSerieSemana' => $this->tablaSerie($series['semana']),
             'tablaSerieMes' => $this->tablaSerie($series['mes']),
+            'esTodo' => $esTodo,
             'tablaPaises' => $tablaPaises,
             'hayPaises' => !empty($tablaPaises),
             'tablaSexo' => $tablaSexo,
             'tablaEdad' => $tablaEdad,
-            'hayUsuarios' => $totalUsuarios > 0,
+            'tablaPaisesTotal' => $tablaPaisesTotal,
+            'hayPaisesTotal' => !empty($tablaPaisesTotal),
+            'tablaSexoTotal' => $tablaSexoTotal,
+            'tablaEdadTotal' => $tablaEdadTotal,
+            'hayUsuariosTotal' => $totalHistorico > 0,
             // Se escapan <, >, & y comillas para que ningun texto cargado por usuarios pueda cerrar el <script>.
             'graficosJson' => json_encode(
                 $graficos,
                 JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
             ),
         ]);
+    }
+
+    private function tablaPaises(array $paises, int $total): array
+    {
+        $filas = [];
+        foreach ($paises as $fila) {
+            $filas[] = [
+                'pais' => $fila['pais'],
+                'total' => (int)$fila['total'],
+                'porcentaje' => $this->porcentajeDe((int)$fila['total'], $total),
+            ];
+        }
+        return $filas;
+    }
+
+    private function tablaConteo(array $conteo, array $etiquetas, int $total): array
+    {
+        $filas = [];
+        foreach ($etiquetas as $clave => $etiqueta) {
+            $filas[] = [
+                'etiqueta' => $etiqueta,
+                'total' => $conteo[$clave],
+                'porcentaje' => $this->porcentajeDe($conteo[$clave], $total),
+            ];
+        }
+        return $filas;
+    }
+
+    private function conteoParaGrafico(array $conteo, array $etiquetas): array
+    {
+        return [
+            'labels' => array_values($etiquetas),
+            'valores' => array_map(static fn($clave) => $conteo[$clave], array_keys($etiquetas)),
+        ];
     }
 
     private function tablaDificultad(array $preguntas): array
@@ -177,7 +208,7 @@ class AdminController
         return $filas;
     }
 
-    /** Para la tabla solo se listan los periodos con partidas, del mas reciente al mas viejo. */
+    // Para la tabla solo se listan los periodos con partidas, del mas reciente al mas viejo.
     private function tablaSerie(array $serie): array
     {
         $filas = [];
@@ -189,7 +220,7 @@ class AdminController
         return array_reverse($filas);
     }
 
-    /** Los primeros paises tal cual y el resto agrupado en "Otros". */
+    // Los primeros paises tal cual y el resto agrupado en "Otros".
     private function paisesParaGrafico(array $paises): array
     {
         $labels = [];

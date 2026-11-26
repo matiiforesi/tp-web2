@@ -5,8 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Página inicial del Grupo 2.">
     <title>Casino del Conocimiento</title>
-    <link rel="stylesheet" href="/public/css/style.css">
-    <!-- <link rel="stylesheet" href="/tp-web2/public/css/style.css"> -->
+    <?php
+    // Cada vista carga style.css (estilos compartidos) y, si corresponde, la hoja propia de su pantalla.
+    // $view es el nombre de la vista que está renderizando MustacheRender::renderiza().
+    $hojasPorVista = [
+            'login' => 'auth', 'registro' => 'auth', 'registroExitoso' => 'auth', 'validar' => 'auth',
+            'lobby' => 'lobby',
+            'ruleta' => 'ruleta',
+            'partida' => 'partida', 'juegoVacio' => 'partida',
+            'perfil' => 'perfil', 'perfilPublico' => 'perfil',
+            'ranking' => 'ranking',
+            'editorInicio' => 'editor',
+            'adminPanel' => 'admin',
+    ];
+    $hojas = ['style'];
+    if (isset($view, $hojasPorVista[$view])) {
+        $hojas[] = $hojasPorVista[$view];
+    }
+    foreach ($hojas as $hoja):
+        $ruta = dirname(__DIR__, 2) . "/public/css/$hoja.css";
+        // ?v= con la fecha del archivo: el navegador descarga de nuevo la hoja cada vez que cambia.
+        $version = is_file($ruta) ? filemtime($ruta) : 0;
+        ?>
+        <link rel="stylesheet" href="/public/css/<?= $hoja ?>.css?v=<?= $version ?>">
+    <?php endforeach; ?>
 </head>
 <body>
 

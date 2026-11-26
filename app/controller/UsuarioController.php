@@ -101,17 +101,20 @@ class UsuarioController
         // Solo las páginas de partida detectan abandonos; abrir el lobby no termina el juego.
         $aviso = $_SESSION['aviso_lobby'] ?? null;
         unset($_SESSION['aviso_lobby']);
+        $exito = $_SESSION['exito_lobby'] ?? null;
+        unset($_SESSION['exito_lobby']);
 
         $partidas = $this->partidas->ultimasPartidas($usuarioId, 10);
 
         $this->render->renderiza('lobby', [
             'aviso' => $aviso,
+            'exito' => $exito,
             'usuario' => $_SESSION['usuario'],
             'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
+            'puntajeHoy' => $this->partidas->getPuntajeHoy($usuarioId),
             'vidas' => $recursos['vidas'],
             'dinero' => $recursos['dinero'],
             'proximaVidaSegundos' => $recursos['proxima_vida_segundos'],
-            'minutosPorVida' => \app\model\PartidaModel::MINUTOS_POR_VIDA,
             'partidas' => $partidas,
             'hayPartidas' => !empty($partidas),
         ]);

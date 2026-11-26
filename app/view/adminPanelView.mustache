@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="/public/css/admin.css">
-
 <main class="contenedor admin">
     <header class="admin-cabecera">
         <div>
@@ -256,28 +254,34 @@
                     </div>
                 </div>
                 <div>
-                    <div class="tabla-scroll">
-                        <table class="tabla admin-tabla admin-tabla-preguntas">
-                            <caption class="admin-caption">Más fáciles</caption>
-                            <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Pregunta</th>
-                                <th>Categoría</th>
-                                <th>Veces</th>
-                                <th>Aciertos</th>
-                            </tr>
-                            </thead>
-                            <tbody>{{#faciles}}
+                    {{#hayFaciles}}
+                        <div class="tabla-scroll">
+                            <table class="tabla admin-tabla admin-tabla-preguntas">
+                                <caption class="admin-caption">Más fáciles</caption>
+                                <thead>
                                 <tr>
-                                    <td>{{posicion}}</td>
-                                    <td>{{enunciado}}</td>
-                                    <td>{{categoria}}</td>
-                                    <td>{{intentos}}</td>
-                                    <td><strong>{{porcentaje}} %</strong></td>
-                                </tr>{{/faciles}}</tbody>
-                        </table>
-                    </div>
+                                    <th>#</th>
+                                    <th>Pregunta</th>
+                                    <th>Categoría</th>
+                                    <th>Veces</th>
+                                    <th>Aciertos</th>
+                                </tr>
+                                </thead>
+                                <tbody>{{#faciles}}
+                                    <tr>
+                                        <td>{{posicion}}</td>
+                                        <td>{{enunciado}}</td>
+                                        <td>{{categoria}}</td>
+                                        <td>{{intentos}}</td>
+                                        <td><strong>{{porcentaje}} %</strong></td>
+                                    </tr>{{/faciles}}</tbody>
+                            </table>
+                        </div>
+                    {{/hayFaciles}}
+                    {{^hayFaciles}}
+                        <p class="nota">Todavía no hay suficientes preguntas con respuestas para armar la tabla de más
+                            fáciles.</p>
+                    {{/hayFaciles}}
                 </div>
             </div>
         {{/hayDificultad}}
@@ -285,90 +289,185 @@
             <p class="nota">En el período ninguna pregunta se respondió {{minimoIntentos}} veces.</p>{{/hayDificultad}}
     </section>
 
+    <h2 id="titulo-usuarios-modo" class="admin-titulo">Usuarios por país, sexo y grupo de edad</h2>
+    <p class="nota admin-periodo-nota">Elegí si los gráficos de país, sexo y grupo de edad muestran solo a los usuarios dados de
+        alta en
+        el período seleccionado o a todos.</p>
+    {{^esTodo}}
+        <div class="admin-modos" role="group" aria-label="Usuarios a mostrar en los tres gráficos">
+            <button type="button" class="admin-modo admin-modo-activo" data-modo="periodo" aria-pressed="true">
+                Registrados en el período
+            </button>
+            <button type="button" class="admin-modo" data-modo="total" aria-pressed="false">Total</button>
+        </div>
+    {{/esTodo}}
+
     <section class="admin-bloque" aria-labelledby="titulo-paises">
         <h2 id="titulo-paises" class="admin-titulo">Usuarios por país</h2>
-        <p class="nota">Usuarios registrados en el período.</p>
-        {{#hayPaises}}
+        {{#hayUsuariosTotal}}
             <div class="admin-grafico">
                 <canvas id="grafico-paises" role="img" aria-label="Usuarios por país"></canvas>
             </div>
-            <div class="tabla-scroll">
-                <table class="tabla admin-tabla">
-                    <caption class="admin-caption">Usuarios por país</caption>
-                    <thead>
-                    <tr>
-                        <th>País</th>
-                        <th>Usuarios</th>
-                        <th>%</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {{#tablaPaises}}
+        {{/hayUsuariosTotal}}
+        <div class="admin-modo-panel" data-modo="periodo">
+            <p class="nota">Usuarios registrados en el período.</p>
+            {{#hayPaises}}
+                <div class="tabla-scroll">
+                    <table class="tabla admin-tabla">
+                        <caption class="admin-caption">Usuarios por país (registrados en el período)</caption>
+                        <thead>
                         <tr>
-                            <td>{{pais}}</td>
-                            <td>{{total}}</td>
-                            <td>{{porcentaje}} %</td>
-                        </tr>{{/tablaPaises}}
-                    </tbody>
-                </table>
+                            <th>País</th>
+                            <th>Usuarios</th>
+                            <th>%</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {{#tablaPaises}}
+                            <tr>
+                                <td>{{pais}}</td>
+                                <td>{{total}}</td>
+                                <td>{{porcentaje}} %</td>
+                            </tr>{{/tablaPaises}}
+                        </tbody>
+                    </table>
+                </div>
+            {{/hayPaises}}
+            {{^hayPaises}}<p class="nota">No hay usuarios registrados en el período.</p>{{/hayPaises}}
+        </div>
+        {{^esTodo}}
+            <div class="admin-modo-panel" data-modo="total">
+                <p class="nota">Todos los usuarios activados, sin filtrar por período.</p>
+                {{#hayPaisesTotal}}
+                    <div class="tabla-scroll">
+                        <table class="tabla admin-tabla">
+                            <caption class="admin-caption">Usuarios por país (total)</caption>
+                            <thead>
+                            <tr>
+                                <th>País</th>
+                                <th>Usuarios</th>
+                                <th>%</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {{#tablaPaisesTotal}}
+                                <tr>
+                                    <td>{{pais}}</td>
+                                    <td>{{total}}</td>
+                                    <td>{{porcentaje}} %</td>
+                                </tr>{{/tablaPaisesTotal}}
+                            </tbody>
+                        </table>
+                    </div>
+                {{/hayPaisesTotal}}
+                {{^hayPaisesTotal}}<p class="nota">No hay usuarios activados.</p>{{/hayPaisesTotal}}
             </div>
-        {{/hayPaises}}
-        {{^hayPaises}}<p class="nota">No hay usuarios registrados en el período.</p>{{/hayPaises}}
+        {{/esTodo}}
     </section>
 
     <div class="admin-doble">
         <section class="admin-bloque" aria-labelledby="titulo-sexo">
             <h2 id="titulo-sexo" class="admin-titulo">Usuarios por sexo</h2>
-            <p class="nota">Usuarios registrados en el período.</p>
-            {{#hayUsuarios}}
+            {{#hayUsuariosTotal}}
                 <div class="admin-grafico">
                     <canvas id="grafico-sexo" role="img" aria-label="Usuarios por sexo"></canvas>
-                </div>{{/hayUsuarios}}
-            <div class="tabla-scroll">
-                <table class="tabla admin-tabla">
-                    <caption class="admin-caption">Usuarios por sexo</caption>
-                    <thead>
-                    <tr>
-                        <th>Sexo</th>
-                        <th>Usuarios</th>
-                        <th>%</th>
-                    </tr>
-                    </thead>
-                    <tbody>{{#tablaSexo}}
+                </div>{{/hayUsuariosTotal}}
+            <div class="admin-modo-panel" data-modo="periodo">
+                <p class="nota">Usuarios registrados en el período.</p>
+                <div class="tabla-scroll">
+                    <table class="tabla admin-tabla">
+                        <caption class="admin-caption">Usuarios por sexo (registrados en el período)</caption>
+                        <thead>
                         <tr>
-                            <td>{{etiqueta}}</td>
-                            <td>{{total}}</td>
-                            <td>{{porcentaje}} %</td>
-                        </tr>{{/tablaSexo}}</tbody>
-                </table>
+                            <th>Sexo</th>
+                            <th>Usuarios</th>
+                            <th>%</th>
+                        </tr>
+                        </thead>
+                        <tbody>{{#tablaSexo}}
+                            <tr>
+                                <td>{{etiqueta}}</td>
+                                <td>{{total}}</td>
+                                <td>{{porcentaje}} %</td>
+                            </tr>{{/tablaSexo}}</tbody>
+                    </table>
+                </div>
             </div>
+            {{^esTodo}}
+                <div class="admin-modo-panel" data-modo="total">
+                    <p class="nota">Todos los usuarios activados, sin filtrar por período.</p>
+                    <div class="tabla-scroll">
+                        <table class="tabla admin-tabla">
+                            <caption class="admin-caption">Usuarios por sexo (total)</caption>
+                            <thead>
+                            <tr>
+                                <th>Sexo</th>
+                                <th>Usuarios</th>
+                                <th>%</th>
+                            </tr>
+                            </thead>
+                            <tbody>{{#tablaSexoTotal}}
+                                <tr>
+                                    <td>{{etiqueta}}</td>
+                                    <td>{{total}}</td>
+                                    <td>{{porcentaje}} %</td>
+                                </tr>{{/tablaSexoTotal}}</tbody>
+                        </table>
+                    </div>
+                </div>
+            {{/esTodo}}
         </section>
 
         <section class="admin-bloque" aria-labelledby="titulo-edad">
             <h2 id="titulo-edad" class="admin-titulo">Usuarios por grupo de edad</h2>
-            <p class="nota">Usuarios registrados en el período.</p>
-            {{#hayUsuarios}}
+            {{#hayUsuariosTotal}}
                 <div class="admin-grafico">
                     <canvas id="grafico-edad" role="img" aria-label="Usuarios por grupo de edad"></canvas>
-                </div>{{/hayUsuarios}}
-            <div class="tabla-scroll">
-                <table class="tabla admin-tabla">
-                    <caption class="admin-caption">Usuarios por grupo de edad</caption>
-                    <thead>
-                    <tr>
-                        <th>Grupo</th>
-                        <th>Usuarios</th>
-                        <th>%</th>
-                    </tr>
-                    </thead>
-                    <tbody>{{#tablaEdad}}
+                </div>{{/hayUsuariosTotal}}
+            <div class="admin-modo-panel" data-modo="periodo">
+                <p class="nota">Usuarios registrados en el período.</p>
+                <div class="tabla-scroll">
+                    <table class="tabla admin-tabla">
+                        <caption class="admin-caption">Usuarios por grupo de edad (registrados en el período)</caption>
+                        <thead>
                         <tr>
-                            <td>{{etiqueta}}</td>
-                            <td>{{total}}</td>
-                            <td>{{porcentaje}} %</td>
-                        </tr>{{/tablaEdad}}</tbody>
-                </table>
+                            <th>Grupo</th>
+                            <th>Usuarios</th>
+                            <th>%</th>
+                        </tr>
+                        </thead>
+                        <tbody>{{#tablaEdad}}
+                            <tr>
+                                <td>{{etiqueta}}</td>
+                                <td>{{total}}</td>
+                                <td>{{porcentaje}} %</td>
+                            </tr>{{/tablaEdad}}</tbody>
+                    </table>
+                </div>
             </div>
+            {{^esTodo}}
+                <div class="admin-modo-panel" data-modo="total">
+                    <p class="nota">Todos los usuarios activados, sin filtrar por período.</p>
+                    <div class="tabla-scroll">
+                        <table class="tabla admin-tabla">
+                            <caption class="admin-caption">Usuarios por grupo de edad (total)</caption>
+                            <thead>
+                            <tr>
+                                <th>Grupo</th>
+                                <th>Usuarios</th>
+                                <th>%</th>
+                            </tr>
+                            </thead>
+                            <tbody>{{#tablaEdadTotal}}
+                                <tr>
+                                    <td>{{etiqueta}}</td>
+                                    <td>{{total}}</td>
+                                    <td>{{porcentaje}} %</td>
+                                </tr>{{/tablaEdadTotal}}</tbody>
+                        </table>
+                    </div>
+                </div>
+            {{/esTodo}}
         </section>
     </div>
 

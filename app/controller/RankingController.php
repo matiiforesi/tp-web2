@@ -2,6 +2,8 @@
 
 namespace app\controller;
 
+use app\model\RankingModel;
+
 class RankingController
 {
     private $model;
@@ -20,10 +22,16 @@ class RankingController
             \Redirect::to('/usuario/login');
         }
 
+        $periodo = RankingModel::periodoValido(\Request::get('periodo'));
+        $periodos = [];
+        foreach (RankingModel::PERIODOS as $clave => $datos) {
+            $periodos[] = ['clave' => $clave, 'etiqueta' => $datos['etiqueta'], 'activo' => $clave === $periodo];
+        }
+
         $medallas = [1 => '🥇', 2 => '🥈', 3 => '🥉'];
         $jugadores = [];
 
-        foreach ($this->model->getRanking(100) as $i => $fila) {
+        foreach ($this->model->getRanking($periodo, 100) as $i => $fila) {
             $posicion = $i + 1;
             $jugadores[] = [
                 'id' => (int)$fila['id'],
@@ -39,6 +47,9 @@ class RankingController
         $this->render->renderiza('ranking', [
             'jugadores' => $jugadores,
             'hayJugadores' => !empty($jugadores),
+            'periodos' => $periodos,
+            'periodoEtiqueta' => RankingModel::PERIODOS[$periodo]['etiqueta'],
+            'esTotal' => $periodo === 'total',
         ]);
     }
 }

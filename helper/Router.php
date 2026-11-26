@@ -38,6 +38,8 @@ class Router
 
     private function getMethod($controller, $method)
     {
-        return method_exists($controller, $method) ? $method : $this->defaultMethod;
+        // is_callable (y no method_exists) para que los metodos privados y los magicos no se puedan invocar desde la URL.
+        $esRuta = is_string($method) && strpos($method, '__') !== 0 && is_callable([$controller, $method]);
+        return $esRuta ? $method : $this->defaultMethod;
     }
 }

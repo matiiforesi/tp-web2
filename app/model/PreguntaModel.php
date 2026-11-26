@@ -25,29 +25,83 @@ class PreguntaModel
         $this->db = $db;
     }
 
-    /** Elige una pregunta activa de la categoría, evitando repetirla en la partida y ajustando la dificultad al jugador. */
+    const NIVELES = ['facil' => 0, 'media' => 1, 'dificil' => 2];
+    const UMBRAL_FACIL = 0.70;          // Mas del 70% de aciertos historicos = facil
+    const UMBRAL_DIFICIL = 0.30;        // Menos del 30% = dificil; entre ambos, media
+    const MIN_INTENTOS_DIFICULTAD = 5;  // Con menos respuestas la pregunta todavia se considera media
+    const MIN_RESPUESTAS_JUGADOR = 5;   // Con menos respuestas el jugador se considera de nivel medio
+    const VENTANA_JUGADOR = 20;         // Cantidad de partidas usadas para calcular el ratio del jugador
+
+    // Nivel de pregunta correspondiente al jugador segun su ratio de aciertos reciente.
+    public function nivelObjetivoJugador($usuarioId): string
+    {
+        if ($usuarioId === null) return 'media';
+        $fila = $this->db->queryOne(
+            "SELECT COUNT(*) AS respondidas, AVG(recientes.correcta) AS ratio FROM (
+                SELECT pp.correcta
+                FROM partida_pregunta pp
+                WHERE pp.partida_id IN (SELECT id FROM partida WHERE usuario_id = ?)
+                  AND pp.correcta IS NOT NULL AND pp.opcion_elegida_id IS NOT NULL
+                ORDER BY pp.fecha DESC, pp.id DESC
+                LIMIT " . self::VENTANA_JUGADOR . "
+            ) recientes",
+            [(int)$usuarioId]
+        );
+        if (!$fila || (int)$fila['respondidas'] < self::MIN_RESPUESTAS_JUGADOR || $fila['ratio'] === null) {
+            return 'media';
+        }
+        // Un jugador que acierta mucho recibe preguntas dificiles y uno que acierta poco, faciles.
+        $ratio = (float)$fila['ratio'];
+        return $ratio > self::UMBRAL_FACIL ? 'dificil' : ($ratio < self::UMBRAL_DIFICIL ? 'facil' : 'media');
+    }
+
+    private function condicionNoVistas(): string
+    {
+        return "p.id NOT IN (SELECT pp.pregunta_id FROM partida_pregunta pp
+                             WHERE pp.partida_id IN (SELECT pa.id FROM partida pa WHERE pa.usuario_id = ?))";
+    }
+
+    // TRUE si el jugador ya vio todas las preguntas activas del sistema (ahí recién se permite repetir).
+    public function agotoTodas($usuarioId): bool
+    {
+        $fila = $this->db->queryOne(
+            "SELECT COUNT(*) AS total FROM pregunta p WHERE p.estado = 'activa' AND " . $this->condicionNoVistas(),
+            [(int)$usuarioId]
+        );
+        return (int)($fila['total'] ?? 0) === 0;
+    }
+
+    // Categorias que todavia tienen preguntas sin ver para el jugador.
+    public function categoriasParaJugador($usuarioId): array
+    {
+        if ($this->agotoTodas($usuarioId)) {
+            return $this->categorias();
+        }
+        $categorias = $this->db->queryAll(
+            "SELECT c.id, c.nombre, c.color FROM categoria c
+             WHERE EXISTS (SELECT 1 FROM pregunta p
+                           WHERE p.categoria_id = c.id AND p.estado = 'activa' AND " . $this->condicionNoVistas() . ")
+             ORDER BY c.nombre",
+            [(int)$usuarioId]
+        );
+        foreach ($categorias as &$categoria) {
+            $categoria['esGeografia'] = (int)$categoria['id'] === 5;
+        }
+        unset($categoria);
+        return $categorias;
+    }
+
+    /**
+     * Elige una pregunta activa de la categoria.
+     * - No repite preguntas que el jugador ya vio, salvo que haya visto todas las del sistema
+     *   (en ese caso solo evita repetirlas dentro de la partida actual).
+     * - Entrega la dificultad que corresponde al jugador; si no hay de ese nivel, la mas cercana.
+     */
     public function getPreguntaAleatoria($partidaId = null, $categoriaId = null, $usuarioId = null)
     {
-        // El promedio del jugador usa sus últimas 20 respuestas y arranca en un nivel neutral si todavía no tiene historial.
-        $habilidad = 0.5;
-        if ($usuarioId !== null) {
-            $rendimiento = $this->db->queryOne(
-                "SELECT AVG(recientes.correcta) AS ratio FROM (
-                    SELECT pp.correcta
-                    FROM partida_pregunta pp
-                    JOIN partida pa ON pa.id = pp.partida_id
-                    WHERE pa.usuario_id = ? AND pp.correcta IS NOT NULL AND pp.opcion_elegida_id IS NOT NULL
-                    ORDER BY pp.fecha DESC, pp.id DESC
-                ) recientes",
-                [(int)$usuarioId]
-            );
-            if ($rendimiento && $rendimiento['ratio'] !== null) {
-                $habilidad = max(0.0, min(1.0, (float)$rendimiento['ratio']));
-            }
-        }
-        // Si el jugador acierta más, buscamos preguntas con una tasa global de aciertos menor.
-        $tasaObjetivo = max(0.30, min(0.90, 0.90 - (0.55 * $habilidad)));
+        $nivelObjetivo = self::NIVELES[$this->nivelObjetivoJugador($usuarioId)];
 
+        // Nivel de cada pregunta segun porcentaje historico de aciertos.
         $sql = "SELECT p.id, p.enunciado, c.nombre AS categoria_nombre, c.color AS categoria_color
                 FROM pregunta p
                 JOIN categoria c ON c.id = p.categoria_id
@@ -60,7 +114,10 @@ class PreguntaModel
                 WHERE p.estado = 'activa'";
         $params = [];
 
-        if ($partidaId !== null) {
+        if ($usuarioId !== null && !$this->agotoTodas($usuarioId)) {
+            $sql .= ' AND ' . $this->condicionNoVistas();
+            $params[] = (int)$usuarioId;
+        } elseif ($partidaId !== null) {
             $sql .= " AND p.id NOT IN (SELECT pp.pregunta_id FROM partida_pregunta pp WHERE pp.partida_id = ?)";
             $params[] = $partidaId;
         }
@@ -70,11 +127,16 @@ class PreguntaModel
             $params[] = (int)$categoriaId;
         }
 
-        // Las preguntas nuevas parten de una dificultad media y se ajustan gradualmente con las respuestas reales.
-        $sql .= " ORDER BY ABS(
-                    ((COALESCE(dificultad.aciertos, 0) + 1.95) / (COALESCE(dificultad.intentos, 0) + 3)) - ?
-                 ), RAND() LIMIT 1";
-        $params[] = $tasaObjetivo;
+        /**
+         * 0 = Facil, 1 = Media, 2 = Dificil.
+         * Se ordena por cercania al nivel buscado y, dentro del mismo nivel, al azar.
+         */
+        $sql .= " ORDER BY ABS(CASE
+                    WHEN COALESCE(dificultad.intentos, 0) < " . self::MIN_INTENTOS_DIFICULTAD . " THEN 1
+                    WHEN dificultad.aciertos / dificultad.intentos > " . self::UMBRAL_FACIL . " THEN 0
+                    WHEN dificultad.aciertos / dificultad.intentos < " . self::UMBRAL_DIFICIL . " THEN 2
+                    ELSE 1 END - ?), RAND() LIMIT 1";
+        $params[] = $nivelObjetivo;
         $pregunta = $this->db->queryOne($sql, $params);
 
         if (!$pregunta) return null;
@@ -85,7 +147,7 @@ class PreguntaModel
         return $pregunta;
     }
 
-    /** Devuelve la pregunta con sus opciones (mezcladas), o null si no existe o no esta activa. */
+    // Devuelve la pregunta con sus opciones (mezcladas), o null si no existe o no esta activa.
     public function getPreguntaPorId($preguntaId)
     {
         $sql = "SELECT p.id, p.enunciado, c.nombre AS categoria_nombre, c.color AS categoria_color
@@ -102,26 +164,13 @@ class PreguntaModel
         return $pregunta;
     }
 
-    /** Devuelve id, pregunta_id y es_correcta de una opcion, o null si no existe. */
+    // Devuelve id, pregunta_id y es_correcta de una opcion, o null si no existe.
     public function getOpcion($opcionId)
     {
         return $this->db->queryOne(
             "SELECT id, pregunta_id, es_correcta FROM opcion WHERE id = ?",
             [$opcionId]
         );
-    }
-
-    public function esRespuestaCorrecta($opcionId)
-    {
-        $sql = "SELECT es_correcta FROM opcion WHERE id = ?";
-        $resultado = $this->db->queryOne($sql, [$opcionId]);
-        return $resultado && (int)$resultado['es_correcta'] === 1;
-    }
-
-    public function sumarPunto($usuarioId)
-    {
-        $sql = "UPDATE usuario SET puntaje_total = puntaje_total + 1 WHERE id = ?";
-        $this->db->execute($sql, [$usuarioId]);
     }
 
     public function getPuntajeTotal($usuarioId)
@@ -131,36 +180,21 @@ class PreguntaModel
         return $resultado ? (int)$resultado['puntaje_total'] : 0;
     }
 
-    public function getRespuestaCorrecta($preguntaId)
-    {
-        $sql = "SELECT texto FROM opcion WHERE pregunta_id = ? AND es_correcta = 1 LIMIT 1";
-        $resultado = $this->db->queryOne($sql, [$preguntaId]);
-        return $resultado ? $resultado['texto'] : 'No disponible';
-    }
-
-    public function getCategorias()
-    {
-        return $this->db->queryAll("SELECT id, nombre FROM categoria ORDER BY nombre ASC");
-    }
-
-    public function guardarSugerencia($enunciado, $categoriaId, $opciones)
-    {
-        $sql = "INSERT INTO pregunta (categoria_id, enunciado, estado) VALUES (?, ?, 'pendiente')";
-        $this->db->execute($sql, [$categoriaId, $enunciado]);
-
-        $preguntaId = $this->db->lastInsertId();
-
-        foreach ($opciones as $opcion) {
-            $sqlOpcion = "INSERT INTO opcion (pregunta_id, texto, es_correcta) VALUES (?, ?, ?)";
-            $this->db->execute($sqlOpcion, [$preguntaId, $opcion['texto'], $opcion['es_correcta']]);
-        }
-    }
-
+    /**
+     * Guarda el reporte solo si la pregunta esta activa, el usuario ya la vio y la respondio (no si sigue pendiente)
+     * y no tiene otro reporte sin resolver de esa misma pregunta. Devuelve 1 si se guardo, 0 si no.
+     */
     public function guardarReporte($preguntaId, $usuarioId, $motivo)
     {
         $sql = "INSERT INTO reporte_pregunta (pregunta_id, usuario_id, motivo)
-                SELECT id, ?, ? FROM pregunta WHERE id = ? AND estado = 'activa'";
-        return $this->db->execute($sql, [$usuarioId, $motivo, $preguntaId]);
+                SELECT p.id, ?, ? FROM pregunta p
+                WHERE p.id = ? AND p.estado = 'activa'
+                  AND EXISTS (SELECT 1 FROM partida_pregunta pp
+                              WHERE pp.pregunta_id = p.id AND pp.correcta IS NOT NULL
+                                AND pp.partida_id IN (SELECT pa.id FROM partida pa WHERE pa.usuario_id = ?))
+                  AND NOT EXISTS (SELECT 1 FROM reporte_pregunta r
+                                  WHERE r.pregunta_id = p.id AND r.usuario_id = ? AND r.resuelto = 0)";
+        return $this->db->execute($sql, [$usuarioId, $motivo, $preguntaId, $usuarioId, $usuarioId]);
     }
 
     public function crearPropuesta($usuarioId, $categoriaId, string $enunciado, array $opciones): void
@@ -222,15 +256,15 @@ class PreguntaModel
     {
         if ($accion === 'aprobar') {
             return $this->db->execute(
-                "UPDATE pregunta SET enunciado = ?, estado = 'activa' WHERE id = ? AND estado = 'pendiente'",
-                [$enunciado, $id]
-            ) === 1;
+                    "UPDATE pregunta SET enunciado = ?, estado = 'activa' WHERE id = ? AND estado = 'pendiente'",
+                    [$enunciado, $id]
+                ) === 1;
         }
         if ($accion === 'rechazar') {
             return $this->db->execute(
-                "UPDATE pregunta SET estado = 'baja' WHERE id = ? AND estado = 'pendiente'",
-                [$id]
-            ) === 1;
+                    "UPDATE pregunta SET estado = 'baja' WHERE id = ? AND estado = 'pendiente'",
+                    [$id]
+                ) === 1;
         }
         return false;
     }
@@ -256,9 +290,9 @@ class PreguntaModel
         }
         if ($accion === 'descartar') {
             return $this->db->execute(
-                "UPDATE reporte_pregunta SET resuelto = 1 WHERE id = ? AND resuelto = 0",
-                [$reporteId]
-            ) === 1;
+                    "UPDATE reporte_pregunta SET resuelto = 1 WHERE id = ? AND resuelto = 0",
+                    [$reporteId]
+                ) === 1;
         }
         return false;
     }

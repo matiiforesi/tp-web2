@@ -5,7 +5,6 @@ namespace app\model;
 use DateInterval;
 use DateTimeImmutable;
 
-
 // "Jugador" = usuario con rol jugador (1) y cuenta activada. Editores y administradores no cuentan.
 
 class AdminModel
@@ -50,13 +49,15 @@ class AdminModel
     }
 
     // Devuelve un pedazo SQL para no tener que escrbir siempre lo mismo en varias consultas a la hora de filtrar.
-   private function desde(string $periodo, string $columna): string
+    private function desde(string $periodo, string $columna): string
     {
         $sql = self::PERIODOS[$periodo]['sql'];
         return $sql === null ? '' : " AND $columna >= $sql";
     }
 
-    // Obtiene respuestas elegidas por jugadores en un periodo seleccioando. No cuentan las salteadas ni las de tiempo agotado porque no hubo opcion elegida.
+    /** Obtiene respuestas elegidas por jugadores en un periodo seleccionado.
+     * No cuentan las salteadas ni las de tiempo agotado porque no hubo opcion elegida.
+     */
     private function respuestas(string $periodo): string
     {
         return "(SELECT pp.pregunta_id, pa.usuario_id, pp.correcta
@@ -256,7 +257,7 @@ class AdminModel
         usort($preguntas, static function ($a, $b) {
             return [$a['porcentaje'], $b['intentos'], $a['id']] <=> [$b['porcentaje'], $a['intentos'], $b['id']];
         });
-        $dificiles = array_slice($preguntas, 0, $top);
+        $dificiles = array_slice($preguntas, 0, min($top, (int)ceil(count($preguntas) / 2)));
         $idsDificiles = array_column($dificiles, 'id');
 
         $resto = array_values(array_filter($preguntas, static function ($p) use ($idsDificiles) {

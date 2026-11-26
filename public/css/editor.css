@@ -1,0 +1,247 @@
+/* Panel del editor (moderación). */
+
+/* Inicio de moderaci�n para editor y administraci�n */
+.editor-dashboard {
+    max-width: 920px;
+}
+
+.editor-bienvenida {
+    margin-bottom: 1.25rem;
+    padding: 1.2rem 1.4rem;
+    border: 1px solid #d4af3766;
+    border-radius: 1rem;
+    background: linear-gradient(120deg, #192944, #351923);
+    box-shadow: 0 10px 26px #0004;
+}
+
+.editor-bienvenida .etiqueta, .editor-seccion-cabecera .etiqueta {
+    font-size: .72rem;
+    letter-spacing: .12em;
+}
+
+.editor-bienvenida h1 {
+    margin: .25rem 0;
+}
+
+.editor-bienvenida p {
+    margin: .25rem 0 0;
+    color: #c7d0df;
+}
+
+.editor-resumen {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .8rem;
+    margin-bottom: 2rem;
+}
+
+.editor-resumen-card {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid #d4af3755;
+    border-radius: .9rem;
+    background: linear-gradient(145deg, #17233b, #101827);
+    color: #f7f1df;
+    text-decoration: none;
+    transition: border-color .16s ease, transform .16s ease;
+}
+
+.editor-resumen-card:hover {
+    border-color: #e4b93f;
+    transform: translateY(-2px);
+}
+
+.editor-resumen-icono {
+    display: grid;
+    place-items: center;
+    width: 2.8rem;
+    height: 2.8rem;
+    flex: none;
+    border: 1px solid #d4af3777;
+    border-radius: .8rem;
+    background: #d4af371a;
+    font-size: 1.35rem;
+}
+
+.editor-resumen-card strong, .editor-resumen-card small {
+    display: block;
+}
+
+.editor-resumen-card strong {
+    color: #f4d35e;
+    font-size: 1.45rem;
+    line-height: 1.1;
+}
+
+.editor-resumen-card small {
+    margin-top: .2rem;
+    color: #dbe4ef;
+    font-size: .78rem;
+}
+
+.editor-seccion {
+    scroll-margin-top: 1rem;
+    margin-top: 2rem;
+}
+
+.editor-seccion-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: .85rem;
+}
+
+.editor-seccion-cabecera h2 {
+    margin: .15rem 0 0;
+}
+
+.editor-contador {
+    display: grid;
+    place-items: center;
+    min-width: 2.2rem;
+    height: 2.2rem;
+    padding: 0 .5rem;
+    border: 1px solid #d4af37;
+    border-radius: 999px;
+    color: #f4d35e;
+    font-weight: 800;
+}
+
+.editor-lista {
+    display: grid;
+    gap: .9rem;
+}
+
+.editor-item {
+    padding: 1rem;
+}
+
+.editor-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: .45rem;
+    margin-bottom: .8rem;
+    color: #aab6c8;
+    font-size: .8rem;
+}
+
+.editor-categoria {
+    color: #f4d35e;
+    font-weight: 800;
+}
+
+.editor-label, .editor-respuestas > strong {
+    display: block;
+    margin-bottom: .35rem;
+    color: #e4b93f;
+    font-size: .85rem;
+    font-weight: 700;
+}
+
+.editor-item textarea {
+    width: 100%;
+    min-height: 5rem;
+    resize: vertical;
+}
+
+.editor-respuestas {
+    display: grid;
+    gap: .35rem;
+    margin: .8rem 0;
+}
+
+.editor-respuesta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding: .55rem .7rem;
+    border: 1px solid #65748e66;
+    border-radius: .55rem;
+    background: #0d1526;
+    color: #f7f1df;
+}
+
+.editor-respuesta.editor-correcta {
+    border-color: #d4af37;
+    background: #d4af3712;
+}
+
+.editor-correcta b {
+    color: #f4d35e;
+    font-size: .75rem;
+    white-space: nowrap;
+}
+
+.editor-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .55rem;
+    margin-top: .8rem;
+}
+
+.editor-acciones .boton {
+    min-height: 2.75rem;
+}
+
+.editor-reporte h3 {
+    margin: .25rem 0 .65rem;
+    color: #f7f1df;
+    font-size: 1.05rem;
+}
+
+.editor-motivo {
+    margin: .5rem 0;
+    padding: .7rem .8rem;
+    border-left: 3px solid #d4af37;
+    border-radius: .2rem .55rem .55rem .2rem;
+    background: #0d1526;
+    color: #dbe4ef;
+}
+
+.editor-vacio {
+    padding: 1.1rem;
+    border: 1px dashed #d4af3766;
+    border-radius: .8rem;
+    background: #17233b88;
+    color: #dbe4ef;
+    text-align: center;
+}
+
+@media (max-width: 560px) {
+    .editor-dashboard {
+    padding-top: .8rem;
+    }
+
+    .editor-resumen {
+    gap: .5rem;
+    }
+
+    .editor-resumen-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .45rem;
+    padding: .75rem;
+    }
+
+    .editor-resumen-icono {
+    width: 2.25rem;
+    height: 2.25rem;
+    }
+
+    .editor-resumen-card small {
+    font-size: .7rem;
+    }
+
+    .editor-acciones {
+    flex-direction: column;
+    }
+
+    .editor-acciones .boton {
+    width: 100%;
+    }
+}

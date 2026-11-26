@@ -85,13 +85,13 @@
     margin-bottom: 1.5rem;
 }
 
-.admin-granularidad {
+.admin-granularidad, .admin-modos {
     display: flex;
     gap: .4rem;
     margin: .5rem 0;
 }
 
-.admin-gran {
+.admin-gran, .admin-modo {
     flex: 1;
     min-height: 2.6rem;
     border: 1px solid #8ea2c0;
@@ -102,12 +102,12 @@
     cursor: pointer;
 }
 
-.admin-gran:hover, .admin-gran:focus-visible {
+.admin-gran:hover, .admin-gran:focus-visible, .admin-modo:hover, .admin-modo:focus-visible {
     border-color: #f4d35e;
     background: #263c67;
 }
 
-.admin-gran-activo {
+.admin-gran-activo, .admin-modo-activo {
     border-color: #e4b93f;
     background: #3a2f10;
     color: #f4d35e;
@@ -155,8 +155,12 @@
 
 .admin-doble {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0;
+}
+
+.admin-doble > * {
+    min-width: 0;
 }
 
 .admin-grafico {
@@ -234,11 +238,11 @@
     }
 
     .admin-doble {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 1rem;
     }
 
-    .admin-gran {
+    .admin-gran, .admin-modo {
         flex: 0 0 auto;
         padding-inline: 1.2rem;
     }
@@ -300,7 +304,7 @@
         margin: 0 0 .75rem;
     }
 
-    .admin-granularidad {
+    .admin-granularidad, .admin-modos {
         display: none !important;
     }
 
@@ -380,4 +384,9 @@
     .admin-tabla thead {
         display: table-header-group;
     }
+}
+
+/* Los paneles y gráficos ocultos por el selector de modo (usuarios del período / total) no deben mostrarse. */
+.admin-modo-panel[hidden], .admin-grafico[hidden] {
+    display: none !important;
 }

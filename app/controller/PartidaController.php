@@ -33,7 +33,7 @@ class PartidaController
         $_SESSION['partida_id'] = $this->partidas->crear($usuarioId);
         $_SESSION['vidas'] = $recursos['vidas'];
         $_SESSION['racha'] = 0;
-        unset($_SESSION['categoria_ruleta']);
+        unset($_SESSION['categoria_ruleta'], $_SESSION['categoria_sorteada']);
 
         \Redirect::to('/partida/jugar');
     }
@@ -64,10 +64,15 @@ class PartidaController
         }
 
         if (!isset($_SESSION['categoria_ruleta'])) {
-            $categorias = $this->model->categorias();
+            $categorias = $this->model->categoriasParaJugador($usuarioId);
+            $sorteada = $this->categoriaSorteada($categorias);
+            if ($sorteada === null) {
+                $this->render->renderiza('juegoVacio', ['completada' => false]);
+                return;
+            }
             $segmentos = [];
-            $totalCategorias = min(5, count($categorias));
-            foreach (array_slice($categorias, 0, $totalCategorias) as $indice => $categoria) {
+            $totalCategorias = count($categorias);
+            foreach ($categorias as $indice => $categoria) {
                 $inicio = (int)round($indice * 100 / max(1, $totalCategorias));
                 $fin = (int)round(($indice + 1) * 100 / max(1, $totalCategorias));
                 $color = preg_match('/^#[0-9A-Fa-f]{6}$/', $categoria['color'] ?? '') ? $categoria['color'] : '#243b53';
@@ -75,6 +80,7 @@ class PartidaController
             }
             $this->render->renderiza('ruleta', [
                 'categorias' => $categorias,
+                'categoriaSorteadaId' => $sorteada,
                 'vidas' => $recursos['vidas'],
                 'proximaVidaSegundos' => $recursos['proxima_vida_segundos'],
                 'ruletaColores' => implode(', ', $segmentos),
@@ -82,7 +88,7 @@ class PartidaController
             return;
         }
 
-        // No se repiten preguntas dentro de una misma partida.
+        // No se repiten preguntas al mismo jugador entre partidas hasta que haya visto todas las del sistema.
         $pregunta = $this->model->getPreguntaAleatoria($partidaId, (int)$_SESSION['categoria_ruleta'], $usuarioId);
 
         if ($pregunta === null) {
@@ -111,14 +117,12 @@ class PartidaController
 
         $this->render->renderiza('partida', [
             'pregunta' => $pregunta,
-            'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
             'jugando' => true,
             'segundos' => PartidaModel::SEGUNDOS_POR_PREGUNTA,
             'segundosTotales' => PartidaModel::SEGUNDOS_POR_PREGUNTA,
             'vidas' => $recursos['vidas'],
             'proximaVidaSegundos' => $recursos['proxima_vida_segundos'],
             'dinero' => $recursos['dinero'],
-            'estrategias' => true,
         ]);
     }
 
@@ -167,14 +171,12 @@ class PartidaController
 
         $this->render->renderiza('partida', [
             'pregunta' => $pregunta,
-            'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
             'jugando' => true,
             'segundos' => $restante,
             'segundosTotales' => $total,
             'vidas' => $recursos['vidas'],
             'proximaVidaSegundos' => $recursos['proxima_vida_segundos'],
             'dinero' => $recursos['dinero'],
-            'estrategias' => true,
             'usadaBomba' => !empty($usadas['bomba']),
             'usadaEscudo' => !empty($usadas['escudo']),
             'usadaTiempo' => !empty($usadas['tiempo']),
@@ -247,7 +249,7 @@ class PartidaController
         echo json_encode(['ok' => true, 'accion' => $accion, 'dinero' => $this->partidas->recursosUsuario($usuarioId)['dinero']]);
     }
 
-    // POST /partida/seleccionarCategoria: la ruleta elige una categoria activa.
+    // POST /partida/seleccionarCategoria: confirma la categoria que sorteo el servidor (el cliente no puede elegirla).
     public function seleccionarCategoria()
     {
         $usuarioId = $this->exigirLogin();
@@ -258,14 +260,30 @@ class PartidaController
         if ($partidaId === 0 || !$this->partidas->estaEnCurso($partidaId, $usuarioId)) {
             \Redirect::to('/usuario/lobby');
         }
-        $categoriaId = filter_var(\Request::post('categoria_id'), FILTER_VALIDATE_INT);
-        $categorias = $this->model->categorias();
-        $permitida = array_filter($categorias, static fn($categoria) => (int)$categoria['id'] === (int)$categoriaId);
-        if (!$permitida) {
-            \Redirect::to('/partida/jugar');
+        $sorteada = $this->categoriaSorteada($this->model->categoriasParaJugador($usuarioId));
+        unset($_SESSION['categoria_sorteada']);
+        if ($sorteada !== null) {
+            $_SESSION['categoria_ruleta'] = $sorteada;
         }
-        $_SESSION['categoria_ruleta'] = (int)$categoriaId;
         \Redirect::to('/partida/jugar');
+    }
+
+    /**
+     * Categoria sorteada por el servidor para la proxima pregunta. Queda guardada en sesion para que recargar
+     * la ruleta no permita volver a sortear; si dejo de ser valida (se agotaron sus preguntas) se sortea otra.
+     */
+    private function categoriaSorteada(array $categorias): ?int
+    {
+        $ids = array_map('intval', array_column($categorias, 'id'));
+        if (!$ids) {
+            return null;
+        }
+        $guardada = (int)($_SESSION['categoria_sorteada'] ?? 0);
+        if (!in_array($guardada, $ids, true)) {
+            $guardada = $ids[random_int(0, count($ids) - 1)];
+            $_SESSION['categoria_sorteada'] = $guardada;
+        }
+        return $guardada;
     }
 
     // POST /partida/responder
@@ -372,10 +390,9 @@ class PartidaController
         }
 
         $sinVidas = !$resultado['correcta'] && (int)($_SESSION['vidas'] ?? 0) <= 0;
-        $siguiente = $resultado['correcta'] || !$sinVidas ? '/partida/jugar' : '/partida/fin';
         $pregunta = $this->model->getPreguntaPorId($resultado['pregunta_id']);
         if ($pregunta === null) {
-            \Redirect::to($siguiente);
+            \Redirect::to('/partida/jugar');
         }
 
         $orden = array_flip($_SESSION['orden_opciones'] ?? []);
@@ -406,39 +423,25 @@ class PartidaController
 
         $this->render->renderiza('partida', [
             'pregunta' => $pregunta,
-            'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
             'jugando' => false,
             'mensaje' => $mensaje,
             'claseMensaje' => $resultado['correcta'] ? 'resultado-ok' : 'resultado-mal',
-            'siguiente' => $siguiente,
-            'textoSiguiente' => $resultado['correcta'] ? 'Siguiente pregunta' : 'Ver resultado',
-            // Si fallo (o se acabó el tiempo) y la partida sigue, el jugador decide cuándo continuar: no hay avance automático.
+            'siguiente' => '/partida/jugar',
+            'textoSiguiente' => 'Siguiente pregunta',
+            'puntosPartida' => $this->partidas->getPuntajePartida($resultado['partida_id']),
+            'puntajeHoy' => $this->partidas->getPuntajeHoy($usuarioId),
+            'puntajeTotal' => $this->model->getPuntajeTotal($usuarioId),
+            // Si falló y la partida sigue, el jugador decide cuándo continuar: no hay avance automático.
             'falloYContinua' => !$resultado['correcta'] && !$sinVidas,
             'vidas' => $recursos['vidas'],
+            'proximaVidaSegundos' => $recursos['proxima_vida_segundos'] ?? null,
+            // Falló con la última vida: la partida terminó y esta misma pantalla hace de cierre.
             'sinVidas' => $sinVidas,
             'racha' => (int)($resultado['racha'] ?? 0),
             'bonificacion' => (int)($resultado['bonificacion'] ?? 0),
             'avisoReporte' => $_SESSION['aviso_reporte'] ?? null,
         ]);
         unset($_SESSION['aviso_reporte']);
-    }
-
-    // GET /partida/fin
-    public function fin()
-    {
-        $usuarioId = $this->exigirLogin();
-        $this->ignorarPrecarga();
-        $recursos = $this->partidas->recursosUsuario($usuarioId);
-        $_SESSION['vidas'] = $recursos['vidas'];
-
-        $resultado = $_SESSION['resultado'] ?? null;
-        if ($resultado === null || $resultado['correcta']) {
-            \Redirect::to('/usuario/lobby');
-        }
-
-        unset($_SESSION['resultado'], $_SESSION['orden_opciones']);
-
-        $this->mostrarFinDePartida($usuarioId, $resultado['partida_id'], false, $resultado['pregunta_id']);
     }
 
     // Ignora las precargas del navegador para no iniciar partidas ni mostrar preguntas por accidente.
@@ -448,23 +451,6 @@ class PartidaController
             http_response_code(204);
             exit;
         }
-    }
-
-    private function mostrarFinDePartida($usuarioId, $partidaId, $fueCorrecta, $preguntaId = null)
-    {
-        $puntosPartida = $this->partidas->getPuntajePartida($partidaId);
-
-        $textoCorrecto = null;
-        if (!$fueCorrecta && $preguntaId !== null) {
-            $textoCorrecto = $this->model->getRespuestaCorrecta($preguntaId);
-        }
-
-        $this->render->renderiza('finPartida', [
-            'fueCorrecta' => $fueCorrecta,
-            'puntosGanados' => $puntosPartida,
-            'respuestaCorrecta' => $textoCorrecto,
-            'vidas' => $recursos['vidas']
-        ]);
     }
 
     private function exigirLogin(): int

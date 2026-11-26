@@ -7,7 +7,7 @@ use Throwable;
 class PartidaModel
 {
     const VIDAS_MAXIMAS = 5;
-    const MINUTOS_POR_VIDA = 30;
+    const MINUTOS_POR_VIDA = 10;
     const PREMIOS_RANKING_DIARIO = [1 => 100, 2 => 75, 3 => 50];
     const SEGUNDOS_POR_PREGUNTA = 15;
     const MARGEN_SEGUNDOS = 2;
@@ -65,14 +65,6 @@ class PartidaModel
             'dinero' => (int)$actualizado['dinero'],
             'proxima_vida_segundos' => $proximaVida,
         ];
-    }
-
-    public function gastarVida($usuarioId): int
-    {
-        $recursos = $this->recursosUsuario($usuarioId);
-        $vidas = max(0, $recursos['vidas'] - 1);
-        $this->db->execute("UPDATE usuario SET vidas = ?, vidas_actualizadas_en = NOW() WHERE id = ?", [$vidas, $usuarioId]);
-        return $vidas;
     }
 
     public function acreditarDinero($usuarioId, $monto): void
@@ -138,7 +130,7 @@ class PartidaModel
         return $fila ? (int)$fila['total'] : 0;
     }
 
-    /** Devuelve la pregunta sin responder de la partida, o null si no hay ninguna. */
+    // Devuelve la pregunta sin responder de la partida, o null si no hay ninguna.
     public function preguntaPendiente($partidaId)
     {
         return $this->db->queryOne(
@@ -149,7 +141,7 @@ class PartidaModel
         );
     }
 
-    /** Registra cuándo se mostró la pregunta para controlar el tiempo y evitar repetirla. */
+    // Registra cuándo se mostro la pregunta para controlar el tiempo y evitar repetirla.
     public function marcarMostrada($partidaId, $preguntaId): void
     {
         $this->db->execute(
@@ -158,7 +150,7 @@ class PartidaModel
         );
     }
 
-    /** Cierra partidas abiertas y devuelve true si el jugador dejó una pregunta sin responder. */
+    // Cierra partidas abiertas y devuelve true si el jugador dejo una pregunta sin responder.
     public function cerrarEnCurso($usuarioId): bool
     {
         $this->db->beginTransaction();
@@ -190,12 +182,12 @@ class PartidaModel
         return $perdidas > 0;
     }
 
-    /** Guarda la respuesta y actualiza el puntaje o las vidas; devuelve false si ya se había respondido. */
+    // Guarda la respuesta y actualiza el puntaje o las vidas; devuelve false si ya se habia respondido.
     public function registrarRespuesta($partidaId, $usuarioId, $preguntaId, $opcionId, $correcta, $protegerVida = false): bool
     {
         $this->db->beginTransaction();
         try {
-            // Esta condición evita registrar dos veces una respuesta si llegan pedidos simultáneos.
+            // Esta condicion evita registrar dos veces una respuesta si llegan pedidos simultaneos.
             $actualizadas = $this->db->execute(
                 "UPDATE partida_pregunta SET opcion_elegida_id = ?, correcta = ?
                  WHERE partida_id = ? AND pregunta_id = ? AND correcta IS NULL",
@@ -221,10 +213,14 @@ class PartidaModel
                     [$usuarioId]
                 );
             } elseif (!$protegerVida) {
+                // El reloj solo arranca al perder una vida con las vidas completas. Si ya estaba
+                // corriendo (porque el jugador ya habia perdido otra), se deja como esta.
                 $this->db->execute(
-                    "UPDATE usuario
-                     SET vidas = GREATEST(vidas - 1, 0), vidas_actualizadas_en = NOW()
-                     WHERE id = ?",
+                    "UPDATE usuario SET vidas_actualizadas_en = NOW() WHERE id = ? AND vidas >= ?",
+                    [$usuarioId, self::VIDAS_MAXIMAS]
+                );
+                $this->db->execute(
+                    "UPDATE usuario SET vidas = GREATEST(vidas - 1, 0) WHERE id = ?",
                     [$usuarioId]
                 );
             }
@@ -246,7 +242,7 @@ class PartidaModel
         );
     }
 
-    /** Devuelve las partidas recientes del jugador, desde la más nueva. */
+    // Devuelve las partidas recientes del jugador, desde la mas nueva.
     public function ultimasPartidas($usuarioId, $limite = 10): array
     {
         $filas = $this->db->queryAll(
@@ -269,6 +265,19 @@ class PartidaModel
                 'etiquetaPuntos' => $puntos === 1 ? 'punto' : 'puntos',
             ];
         }, $filas);
+    }
+
+    // Puntos ganados hoy por el jugador (en todas sus partidas); es el mismo criterio del filtro "Hoy" del ranking.
+    public function getPuntajeHoy($usuarioId)
+    {
+        $resultado = $this->db->queryOne(
+            "SELECT COUNT(*) AS puntos
+             FROM partida_pregunta pp
+             JOIN partida pa ON pa.id = pp.partida_id
+             WHERE pa.usuario_id = ? AND pp.correcta = 1 AND pp.fecha >= CURDATE()",
+            [$usuarioId]
+        );
+        return $resultado ? (int)$resultado['puntos'] : 0;
     }
 
     public function getPuntajePartida($partidaId)

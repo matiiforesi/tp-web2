@@ -1,8 +1,16 @@
 <main class="contenedor">
     <section class="tarjeta">
-        <span class="etiqueta">Ranking global</span>
+        <span class="etiqueta">Ranking</span>
         <h1>🏆 Mejores jugadores</h1>
-        <p class="mensaje">Puntaje total acumulado de todas las partidas.</p>
+        <nav class="ranking-periodos" aria-label="Período del ranking">
+            {{#periodos}}
+                <a href="/ranking/ver?periodo={{clave}}" class="ranking-periodo{{#activo}}
+                ranking-periodo-activo{{/activo}}"{{#activo}} aria-current="true"{{/activo}}>{{etiqueta}}</a>
+            {{/periodos}}
+        </nav>
+        <p class="mensaje">{{#esTotal}}
+            Puntaje acumulado de todas las partidas.{{/esTotal}}{{^esTotal}}
+            Puntos ganados en: <strong>{{periodoEtiqueta}}</strong>.{{/esTotal}}</p>
 
         {{#hayJugadores}}
             <div class="tabla-scroll">
@@ -19,7 +27,8 @@
                     {{#jugadores}}
                         <tr class="{{#esUsuarioActual}}fila-yo{{/esUsuarioActual}}">
                             <td class="col-posicion">{{#medalla}}{{medalla}}{{/medalla}}{{^medalla}}{{posicion}}{{/medalla}}</td>
-                            <td><a href="/usuario/publico?usuario={{usuario}}">{{usuario}}</a>{{#esUsuarioActual}} <span class="etiqueta-yo">TÚ</span>{{/esUsuarioActual}}
+                            <td><a href="/usuario/publico?usuario={{usuario}}">{{usuario}}</a>{{#esUsuarioActual}}
+                                <span class="etiqueta-yo">TÚ</span>{{/esUsuarioActual}}
                             </td>
                             <td>{{pais}}</td>
                             <td class="col-puntaje"><strong>{{puntaje}}</strong></td>
@@ -30,7 +39,7 @@
             </div>
         {{/hayJugadores}}
         {{^hayJugadores}}
-            <p class="nota">Todavía nadie sumó puntos. ¡Sé el primero en jugar!</p>
+            <p class="nota">Nadie sumó puntos en este período. ¡Sé el primero en jugar!</p>
         {{/hayJugadores}}
 
         <div class="acciones">

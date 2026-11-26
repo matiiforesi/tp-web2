@@ -1,0 +1,216 @@
+/* Lobby (mesa principal) y sugerencia de preguntas. */
+/* Las reglas marcadas con =style.css también están en style.css. Se repiten acá a propósito: pisan reglas de esta pantalla
+   y tienen que cargarse después de ellas para conservar el orden de la cascada. Si se cambia una, hay que cambiar las dos. */
+
+.sugerir-pregunta {
+    display: block;
+    margin-top: 2rem;
+}
+
+.sugerir-boton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: .6rem;
+    width: 100%;
+    list-style: none;
+    user-select: none;
+}
+
+.sugerir-boton::-webkit-details-marker {
+    display: none;
+}
+
+.sugerir-boton::after {
+    content: "▾";
+    font-size: 1.1rem;
+    transition: transform .2s ease;
+}
+
+.sugerir-pregunta[open] .sugerir-boton::after {
+    transform: rotate(180deg);
+}
+
+.sugerir-contenido {
+    margin-top: .75rem;
+}
+
+.sugerir-contenido .nota {
+    margin: 0 0 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sugerir-boton::after {
+        transition: none;
+    }
+}
+
+.sugerir-opciones {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    gap: .6rem;
+}
+
+.sugerir-opciones legend {
+    margin-bottom: .35rem;
+    padding: 0;
+    font-weight: 600;
+    font-size: .92rem;
+}
+
+.sugerir-opcion {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+}
+
+.sugerir-opcion input[type="radio"] {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    accent-color: #2e9e5b;
+    cursor: pointer;
+}
+
+.sugerir-opcion input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    padding: .7rem .8rem;
+    border: 1px solid #c3cfdd;
+    border-radius: .6rem;
+    font: inherit;
+    background: #fff;
+}
+
+.sugerir-opcion input[type="text"]:focus {
+    outline: 2px solid #356a9a;
+    outline-offset: 1px;
+}
+
+.sugerir-opcion:has(input[type="radio"]:checked) input[type="text"] {
+    border-color: #2e9e5b;
+    background: #eef8f2;
+}
+
+.recursos-casino {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    color: #f4d35e;
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.nota-recurso {
+    margin: .8rem 0 1.5rem;
+    color: #dbe4ef;
+    font-size: .85rem;
+}
+
+.sugerir-opcion {
+    background: #f8fafc;
+    color: #17233b;
+}
+
+.sugerir-pregunta {
+    color: #f7f1df;
+}
+
+/* =style.css */
+/* Campos de edición y carga con el mismo acabado oscuro y dorado del casino. */
+.campo input:not([type="radio"]):not([type="checkbox"]):not([type="hidden"]),
+.campo select,
+.campo textarea,
+.sugerir-opcion input[type="text"] {
+    border: 1px solid #65748e;
+    border-radius: .7rem;
+    background: linear-gradient(145deg, #111b2d, #0c1423);
+    color: #fff8e1;
+    box-shadow: inset 0 1px 3px #0005, 0 1px #ffffff0a;
+    transition: border-color .16s ease, box-shadow .16s ease, background-color .16s ease;
+}
+
+/* =style.css */
+.campo input:focus, .campo select:focus, .campo textarea:focus,
+.sugerir-opcion input[type="text"]:focus {
+    border-color: #e4b93f;
+    outline: 2px solid #d4af3740;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 3px #d4af3720, inset 0 1px 3px #0005;
+}
+
+.sugerir-opciones .sugerir-opcion {
+    gap: .65rem;
+    padding: .12rem 0;
+    background: transparent !important;
+    color: #f7f1df;
+}
+
+.sugerir-opcion input[type="radio"] {
+    flex: 0 0 1.2rem;
+    width: 1.2rem;
+    min-width: 1.2rem;
+    height: 1.2rem;
+    min-height: 1.2rem;
+    padding: 0;
+    margin: 0 .1rem 0 .2rem;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    box-shadow: none;
+    accent-color: #e4b93f;
+    cursor: pointer;
+}
+
+.sugerir-opcion:has(input[type="radio"]:checked) input[type="text"] {
+    border-color: #d4af37;
+    background: linear-gradient(145deg, #17233b, #101827);
+    box-shadow: 0 0 0 2px #d4af3720, inset 0 1px 3px #0005;
+}
+
+.lobby-saludo {
+    margin: 0;
+}
+
+.lobby-historial-titulo {
+    margin-top: 0;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid #34476a;
+    text-align: center;
+}
+
+.lobby-ranking h3 {
+    margin: .5rem 0 .4rem;
+}
+
+.lobby-ranking .nota {
+    margin: 0 0 1.25rem;
+}
+
+.lobby-puntajes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: .75rem 0 1rem;
+}
+
+.lobby-puntajes strong {
+    display: block;
+    color: #f4d35e;
+    font-size: clamp(2rem, 8vw, 3rem);
+    line-height: 1.1;
+}
+
+.lobby-puntajes span {
+    display: block;
+    margin-top: .25rem;
+    color: #dbe4ef;
+    font-size: .85rem;
+}
+
+.lobby-puntajes div + div {
+    border-left: 1px solid #d4af3755;
+}

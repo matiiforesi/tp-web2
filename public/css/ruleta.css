@@ -1,0 +1,239 @@
+/* Ruleta de categorías. */
+/* Las reglas marcadas con =style.css también están en style.css. Se repiten acá a propósito: pisan reglas de esta pantalla
+   y tienen que cargarse después de ellas para conservar el orden de la cascada. Si se cambia una, hay que cambiar las dos. */
+
+.ruleta-card {
+    text-align: center;
+}
+
+.ruleta-contenedor {
+    position: relative;
+    width: min(20rem, 72vw);
+    margin: 1.5rem auto;
+}
+
+.ruleta-bola {
+    display: none !important;
+}
+
+.ruleta-puntero {
+    position: absolute;
+    z-index: 5;
+    top: -.95rem;
+    left: calc(50% - .55rem);
+    width: 0;
+    height: 0;
+    border-left: .55rem solid transparent;
+    border-right: .55rem solid transparent;
+    border-top: 1rem solid #e8c354;
+    filter: drop-shadow(0 .15rem .1rem #000b);
+}
+
+.ruleta-card .etiqueta {
+    text-align: left;
+    font-size: 0;
+}
+
+.ruleta-card .etiqueta::after {
+    content: 'MESA DE CASINO';
+    font-size: .8rem;
+}
+
+.boton-casino {
+    background: #a52335;
+    color: #fff;
+    border-color: #d4af37;
+}
+
+.ruleta-resultado {
+    min-height: 1.5rem;
+    font-weight: 800;
+    color: #f4d35e;
+}
+
+.ruleta-resultado.categoria-elegida {
+    display: inline-block;
+    margin: .8rem auto;
+    padding: .55rem 1.1rem;
+    border: 2px solid var(--color-categoria, #d4af37);
+    border-radius: .7rem;
+    background: color-mix(in srgb, var(--color-categoria, #d4af37) 22%, #101827);
+    color: #fff8e1;
+    box-shadow: 0 0 1rem color-mix(in srgb, var(--color-categoria, #d4af37) 45%, transparent);
+}
+
+.ruleta-categorias {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .4rem;
+    margin-top: 1.2rem;
+}
+
+.ruleta-categorias span {
+    padding: .35rem .7rem;
+    border-radius: 999px;
+    border-left: .35rem solid var(--color-categoria, #d4af37);
+    background: #f7f1df;
+    color: #17233b !important;
+    font-size: .8rem;
+    font-weight: 800;
+}
+
+/* =style.css */
+.tarjeta {
+    background: linear-gradient(145deg, #17233b, #101827);
+    border: 1px solid #d4af3755;
+    box-shadow: 0 14px 34px #0006, inset 0 1px #ffffff12;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.tarjeta[style*="linear-gradient"] {
+    background: linear-gradient(135deg, #351522, #172747) !important;
+    border: 1px solid #d4af37 !important;
+}
+
+/* =style.css */
+.tarjeta[style*="color: white"], .tarjeta[style*="color: #fff"] {
+    color: #f7f1df !important;
+}
+
+/* =style.css */
+.boton {
+    background: linear-gradient(135deg, #b12b42, #7e172d);
+    border: 1px solid #e8c354;
+    color: #fff8e1;
+    box-shadow: 0 4px 12px #0005;
+    transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease;
+}
+
+/* =style.css */
+.boton-secundario {
+    background: #17233b;
+    border-color: #8ea2c0;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.opcion {
+    background: #17233b;
+    border-color: #536986;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.sugerir-contenido, .modal-qr-contenido {
+    background: #17233b;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.tarjeta {
+    min-width: 0;
+    padding: 1rem;
+    border-radius: .8rem;
+}
+
+/* =style.css */
+.contenedor > div[style*="display: flex"] > .tarjeta {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+}
+
+.ruleta-contenedor {
+    width: min(17rem, 72vw);
+}
+
+.ruleta-categorias {
+    gap: .35rem;
+}
+
+.ruleta-categorias span {
+    font-size: .72rem;
+    padding: .3rem .5rem;
+}
+
+.ruleta-card .boton {
+    width: 100%;
+    min-height: 3rem;
+}
+
+/* =style.css */
+.opcion {
+    min-height: 3.5rem;
+    padding: .7rem .75rem;
+    border-radius: .75rem;
+    font-size: 1rem;
+}
+
+.ruleta-card h1 {
+    margin: .2rem 0 .45rem;
+    font-size: clamp(1.55rem, 6vw, 2.4rem);
+}
+
+.ruleta-card > .mensaje {
+    margin: .35rem 0;
+    font-size: .92rem;
+}
+
+.ruleta-contenedor {
+    width: min(15rem, 58vw);
+    margin: .65rem auto;
+}
+
+.ruleta-categorias {
+    margin-top: .55rem;
+}
+
+@media (min-width: 600px) {
+    /* =style.css */
+    .tarjeta {
+        padding: clamp(1.25rem, 3vw, 2rem);
+    }
+
+    /* =style.css */
+    .contenedor > div[style*="display: flex"] > .tarjeta {
+        flex: 1 1 16rem !important;
+    }
+
+    .ruleta-contenedor {
+        width: min(20rem, 52vw);
+    }
+
+    .ruleta-card .boton {
+        width: auto;
+    }
+}
+
+.ruleta-card .ruleta-contenedor {
+    /* El puntero sobresale casi 1rem por arriba de la ruleta: este margen lo separa del texto de encima. */
+    margin-top: 1.4rem;
+    margin-bottom: 1.1rem;
+}
+
+.ruleta-card .ruleta-resultado {
+    min-height: 0;
+    margin: 0;
+}
+
+.ruleta-card .ruleta-resultado.categoria-elegida {
+    margin: 0 auto .9rem;
+}
+
+.ruleta-card #form-ruleta {
+    margin: 0;
+}
+
+.ruleta-card #girar-ruleta {
+    margin-top: .25rem;
+    padding-block: .9rem;
+}
+
+.ruleta-card .ruleta-categorias {
+    margin-top: .7rem;
+}
+
+.ruleta-card h1 {
+    margin-top: .9rem;
+}

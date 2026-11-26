@@ -2,9 +2,12 @@
     {{#aviso}}
         <div class="errores" role="alert">{{aviso}}</div>
     {{/aviso}}
+    {{#exito}}
+        <div class="info" role="status">{{exito}}</div>
+    {{/exito}}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h2 style="margin: 0; color: #243b53;">¡Hola, {{usuario}}!</h2>
+            <h2 class="lobby-saludo">¡Hola, {{usuario}}!</h2>
         </div>
         <a href="/usuario/perfil" class="boton boton-secundario">Mi Perfil</a>
     </div>
@@ -14,22 +17,28 @@
         <section class="tarjeta"
                  style="flex: 2; min-width: 300px; text-align: center; background: linear-gradient(135deg, #243b53 0%, #356a9a 100%); color: white; border: none;">
             <span class="etiqueta" style="color: #a5c3e3;">Tu Progreso</span>
-            <h1 style="color: white; font-size: 3rem; margin: 0.5rem 0;">{{puntajeTotal}} PTS</h1>
-            <p style="color: #dbe4ef; margin-bottom: 1rem;">Puntaje acumulado total</p>
-            <div class="recursos-casino"><span>♥ {{vidas}} vidas</span><span><i class="icono-moneda" aria-hidden="true">$</i> {{dinero}}</span></div>
-            {{#proximaVidaSegundos}}<p class="nota-recurso">Próxima vida en <strong class="cuenta-regresiva-vida" data-segundos="{{proximaVidaSegundos}}"></strong></p>{{/proximaVidaSegundos}}
-            {{^proximaVidaSegundos}}<p class="nota-recurso">Tenés todas las vidas disponibles.</p>{{/proximaVidaSegundos}}
+            <div class="lobby-puntajes">
+                <div><strong>{{puntajeTotal}}</strong><span>Puntaje total</span></div>
+                <div><strong>{{puntajeHoy}}</strong><span>Puntaje de hoy</span></div>
+            </div>
+            <div class="recursos-casino"><span>♥ {{vidas}} vidas</span><span><i class="icono-moneda" aria-hidden="true">$</i> {{dinero}}</span>
+            </div>
+            {{#proximaVidaSegundos}}<p class="nota-recurso">Próxima vida en <strong class="cuenta-regresiva-vida"
+                                                                                    data-segundos="{{proximaVidaSegundos}}"></strong>
+            </p>{{/proximaVidaSegundos}}
+            {{^proximaVidaSegundos}}
+                <p class="nota-recurso">Tenés todas las vidas disponibles.</p>{{/proximaVidaSegundos}}
 
             <a href="/partida/nueva" class="boton"
                style="background: #fff; color: #243b53; font-size: 1.2rem; padding: 1rem 2rem;">▶ Jugar Nueva
                 Partida</a>
         </section>
 
-        <section class="tarjeta"
+        <section class="tarjeta lobby-ranking"
                  style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
             <h2 style="font-size: 3rem; margin: 0;">🏆</h2>
-            <h3>Ranking Global</h3>
-            <p class="nota" style="margin-bottom: 1.5rem;">Mirá quién lidera la tabla</p>
+            <h3>Ranking</h3>
+            <p class="nota">Mirá quién lidera la tabla</p>
             <a href="/ranking/ver" class="boton boton-secundario" style="width: 100%;">Ver Ranking</a>
         </section>
 
@@ -39,55 +48,54 @@
         <summary class="boton boton-secundario sugerir-boton">💡 Sugerir una pregunta</summary>
 
         <div class="tarjeta sugerir-contenido">
-        <p class="nota">Un editor la revisa antes de que aparezca en el juego.</p>
+            <p class="nota">Un editor la revisa antes de que aparezca en el juego.</p>
 
-        <form class="formulario" action="/pregunta/guardar" method="POST">
-            <div class="campo">
-                <label for="sugerir-categoria">Categoría</label>
-                <select id="sugerir-categoria" name="categoria_id" required>
-                    <option value="" selected disabled>Elegí una categoría</option>
-                    <option value="1">Historia</option>
-                    <option value="2">Deportes</option>
-                    <option value="3">Cultura</option>
-                    <option value="4">Ciencia</option>
-                    <option value="5">Geografía</option>
-                    <option value="6">Entretenimiento</option>
-                </select>
-            </div>
+            <form class="formulario" action="/pregunta/guardar" method="POST">
+                <div class="campo">
+                    <label for="sugerir-categoria">Categoría</label>
+                    <select id="sugerir-categoria" name="categoria_id" required>
+                        <option value="" selected disabled>Elegí una categoría</option>
+                        <option value="1">Historia</option>
+                        <option value="2">Deportes</option>
+                        <option value="3">Cultura</option>
+                        <option value="4">Ciencia</option>
+                        <option value="5">Geografía</option>
+                    </select>
+                </div>
 
-            <div class="campo">
-                <label for="sugerir-enunciado">Pregunta</label>
-                <textarea id="sugerir-enunciado" name="enunciado" rows="2" maxlength="500"
-                          placeholder="Ej: ¿Cuál es la capital de Italia?" required></textarea>
-            </div>
+                <div class="campo">
+                    <label for="sugerir-enunciado">Pregunta</label>
+                    <textarea id="sugerir-enunciado" name="enunciado" rows="2" maxlength="500"
+                              placeholder="Ej: ¿Cuál es la capital de Italia?" required></textarea>
+                </div>
 
-            <fieldset class="campo sugerir-opciones">
-                <legend>Respuestas <small>(marcá la correcta)</small></legend>
-                <label class="sugerir-opcion">
-                    <input type="radio" name="correcta" value="1" required>
-                    <input type="text" name="opcion1" maxlength="255" placeholder="Respuesta A" required>
-                </label>
-                <label class="sugerir-opcion">
-                    <input type="radio" name="correcta" value="2">
-                    <input type="text" name="opcion2" maxlength="255" placeholder="Respuesta B" required>
-                </label>
-                <label class="sugerir-opcion">
-                    <input type="radio" name="correcta" value="3">
-                    <input type="text" name="opcion3" maxlength="255" placeholder="Respuesta C" required>
-                </label>
-                <label class="sugerir-opcion">
-                    <input type="radio" name="correcta" value="4">
-                    <input type="text" name="opcion4" maxlength="255" placeholder="Respuesta D" required>
-                </label>
-            </fieldset>
+                <fieldset class="campo sugerir-opciones">
+                    <legend>Respuestas <small>(marcá la correcta)</small></legend>
+                    <label class="sugerir-opcion">
+                        <input type="radio" name="correcta" value="1" required>
+                        <input type="text" name="opcion1" maxlength="255" placeholder="Respuesta A" required>
+                    </label>
+                    <label class="sugerir-opcion">
+                        <input type="radio" name="correcta" value="2">
+                        <input type="text" name="opcion2" maxlength="255" placeholder="Respuesta B" required>
+                    </label>
+                    <label class="sugerir-opcion">
+                        <input type="radio" name="correcta" value="3">
+                        <input type="text" name="opcion3" maxlength="255" placeholder="Respuesta C" required>
+                    </label>
+                    <label class="sugerir-opcion">
+                        <input type="radio" name="correcta" value="4">
+                        <input type="text" name="opcion4" maxlength="255" placeholder="Respuesta D" required>
+                    </label>
+                </fieldset>
 
-            <button type="submit" class="boton">Enviar pregunta</button>
-        </form>
+                <button type="submit" class="boton">Enviar pregunta</button>
+            </form>
         </div>
     </details>
 
     <div class="tarjeta" style="margin-top: 2rem;">
-        <h3 style="border-bottom: 1px solid #dbe3ed; padding-bottom: 0.5rem; text-align: center;">Tus últimas
+        <h3 class="lobby-historial-titulo">Tus últimas
             partidas</h3>
 
         {{#hayPartidas}}

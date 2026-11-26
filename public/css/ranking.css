@@ -1,0 +1,71 @@
+/* Ranking. */
+
+.tabla .col-posicion {
+    width: 3.5rem;
+    text-align: center;
+}
+
+.tabla .fila-yo {
+    background: transparent;
+}
+
+.etiqueta-yo {
+    margin-left: .3rem;
+    padding: .1rem .45rem;
+    border-radius: 999px;
+    background: #356a9a;
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+.fila-yo td {
+    background: #d4af3726 !important;
+}
+
+/* Ranking: filtro de período */
+.ranking-periodos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin: .5rem 0 1rem;
+}
+
+.ranking-periodo {
+    flex: 1 1 calc(50% - .4rem);
+    min-height: 2.6rem;
+    display: grid;
+    place-items: center;
+    padding: .4rem .6rem;
+    border: 1px solid #8ea2c0;
+    border-radius: .6rem;
+    background: #17233b;
+    color: #f7f1df;
+    text-decoration: none;
+    font-size: .9rem;
+}
+
+.ranking-periodo:hover, .ranking-periodo:focus-visible {
+    border-color: #f4d35e;
+    background: #263c67;
+}
+
+.ranking-periodo-activo {
+    border-color: #e4b93f;
+    background: #3a2f10;
+    color: #f4d35e;
+    font-weight: 700;
+}
+
+@media (min-width: 640px) {
+    .ranking-periodo {
+        flex: 0 0 auto;
+        padding-inline: 1rem;
+    }
+}
+
+.tabla tbody tr.fila-yo:hover td {
+    background: #d4af3740 !important;
+    color: #fff8e1;
+}

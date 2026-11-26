@@ -80,11 +80,10 @@ CREATE TABLE IF NOT EXISTS categoria (
 
 INSERT IGNORE INTO categoria (id, nombre, color) VALUES
     (1, 'Historia','#B8860B'),
-    (2, 'Deportes','#2E8B57'),
+    (2, 'Deportes','#E67E22'),
     (3, 'Cultura','#8E44AD'),
-    (4, 'Ciencia','#2980B9'),
-    (5, 'Geografía','#E67E22'),
-    (6, 'Entretenimiento','#D63384');
+    (4, 'Ciencia','#2E8B57'),
+    (5, 'Geografía','#2980B9');
 
 CREATE TABLE IF NOT EXISTS pregunta (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,

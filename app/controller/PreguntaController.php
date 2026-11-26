@@ -10,27 +10,21 @@ class PreguntaController
 {
     public function __construct(private PreguntaModel $model, private $render) {}
 
-    public function nueva()
-    {
-        $this->exigirLogin();
-        $this->render->renderiza('preguntaNueva', ['categorias' => $this->model->categorias()]);
-    }
-
-    public function crear()
+    // POST /pregunta/guardar: sugerencia de pregunta desde el lobby (queda pendiente de revision).
+    public function guardar()
     {
         $usuarioId = $this->exigirLogin();
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') Redirect::to('/pregunta/nueva');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') Redirect::to('/usuario/lobby');
         $enunciado = trim((string)Request::post('enunciado', ''));
         $categoria = (int)Request::post('categoria_id', 0);
-        $correcta = (int)Request::post('correcta', 0);
-        $listaAntigua = isset($_POST['opciones']);
-        $opcionesTexto = $listaAntigua
-            ? array_values(array_filter(array_map('trim', (array)$_POST['opciones']), fn($v) => $v !== ''))
-            : array_values(array_filter(array_map('trim', [$_POST['opcion1'] ?? '', $_POST['opcion2'] ?? '', $_POST['opcion3'] ?? '', $_POST['opcion4'] ?? '']), fn($v) => $v !== ''));
-        $indiceCorrecto = $listaAntigua ? $correcta : $correcta - 1;
+        $indiceCorrecto = (int)Request::post('correcta', 0) - 1;
+        $opcionesTexto = array_values(array_filter(
+            array_map('trim', [$_POST['opcion1'] ?? '', $_POST['opcion2'] ?? '', $_POST['opcion3'] ?? '', $_POST['opcion4'] ?? '']),
+            fn($v) => $v !== ''
+        ));
         if ($enunciado === '' || mb_strlen($enunciado) > 500 || $categoria < 1 || count($opcionesTexto) < 2 || $indiceCorrecto < 0 || $indiceCorrecto >= count($opcionesTexto)) {
-            $this->render->renderiza('preguntaNueva', ['categorias' => $this->model->categorias(), 'error' => 'Completá la pregunta, la categoría y al menos dos opciones.']);
-            return;
+            $_SESSION['aviso_lobby'] = 'Completá la pregunta, la categoría y al menos dos opciones.';
+            Redirect::to('/usuario/lobby');
         }
         $opciones = [];
         foreach ($opcionesTexto as $indice => $texto) {
@@ -38,10 +32,9 @@ class PreguntaController
         }
         $this->model->crearPropuesta($usuarioId, $categoria, $enunciado, $opciones);
         if (in_array((int)($_SESSION['rol_id'] ?? 0), [2, 3], true)) Redirect::to('/pregunta/inicio');
-        $this->render->renderiza('preguntaNueva', ['categorias' => $this->model->categorias(), 'exito' => 'Tu pregunta quedó pendiente de revisión.']);
+        $_SESSION['exito_lobby'] = 'Tu pregunta quedó pendiente de revisión.';
+        Redirect::to('/usuario/lobby');
     }
-
-    public function guardar() { $this->crear(); }
 
     public function reportar()
     {
@@ -52,6 +45,8 @@ class PreguntaController
         if ($preguntaId > 0 && $motivo !== '' && mb_strlen($motivo) <= 255
             && $this->model->guardarReporte($preguntaId, $usuarioId, $motivo) === 1) {
             $_SESSION['aviso_reporte'] = 'Gracias. El reporte quedó pendiente de revisión.';
+        } else {
+            $_SESSION['aviso_reporte'] = 'No se pudo enviar el reporte: solo podés reportar preguntas que ya respondiste y que no reportaste antes.';
         }
         Redirect::to('/partida/resultado');
     }
@@ -67,12 +62,6 @@ class PreguntaController
             'hayReportes' => $resumen['cantidadReportes'] > 0,
             'nombreEditor' => $_SESSION['usuario'] ?? 'Editor',
         ]));
-    }
-
-    public function pendientes()
-    {
-        $this->exigirModerador();
-        Redirect::to('/pregunta/inicio');
     }
 
     public function moderar()
@@ -103,8 +92,8 @@ class PreguntaController
     {
         $this->exigirLogin();
         if (!in_array((int)($_SESSION['rol_id'] ?? 0), [2, 3], true)) {
-            http_response_code(403);
-            exit('No tenés permisos para moderar preguntas.');
+            $_SESSION['aviso_lobby'] = 'No tenés permisos para moderar preguntas.';
+            Redirect::to('/usuario/lobby');
         }
     }
 }

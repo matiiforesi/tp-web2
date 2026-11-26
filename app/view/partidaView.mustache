@@ -6,10 +6,11 @@
                 <span id="timer" class="juego-timer" data-segundos="{{segundos}}"
                       data-total="{{segundosTotales}}">{{segundos}}</span>
             {{/jugando}}
-            <span class="juego-puntos">Puntos: {{puntajeTotal}}</span>
-            <span class="juego-vidas">♥ {{vidas}} vidas</span>
-            {{#proximaVidaSegundos}}<span class="juego-proxima-vida">+1 vida en <strong class="cuenta-regresiva-vida"
-                                                                                        data-segundos="{{proximaVidaSegundos}}"></strong></span>{{/proximaVidaSegundos}}
+            <div class="juego-vidas-bloque">
+                <span class="juego-vidas">♥ {{vidas}} vidas</span>
+                {{#proximaVidaSegundos}}<span class="juego-proxima-vida">+1 vida en <strong class="cuenta-regresiva-vida"
+                                                                                            data-segundos="{{proximaVidaSegundos}}"></strong></span>{{/proximaVidaSegundos}}
+            </div>
         </div>
 
         {{#jugando}}
@@ -75,10 +76,15 @@
             </div>
 
             <p class="resultado-mensaje {{claseMensaje}}">{{mensaje}}</p>
+            <div class="resultado-datos">
+                <div class="resultado-puntajes">
+                    <div><strong>{{puntosPartida}}</strong><span>Partida</span></div>
+                    <div><strong>{{puntajeHoy}}</strong><span>Hoy</span></div>
+                    <div><strong>{{puntajeTotal}}</strong><span>Total</span></div>
+                </div>
+                {{#bonificacion}}<p class="racha-bonus">Racha de {{racha}}: +{{bonificacion}} monedas</p>{{/bonificacion}}
+            </div>
             {{#avisoReporte}}<p class="info" role="status">{{avisoReporte}}</p>{{/avisoReporte}}
-            {{#bonificacion}}<p class="racha-bonus">Racha de {{racha}}: +{{bonificacion}} monedas</p>{{/bonificacion}}
-            {{#racha}}<p class="racha-contador">Racha actual: {{racha}} aciertos</p>{{/racha}}
-            {{^sinVidas}}<p class="mensaje">Te quedan {{vidas}} vidas.</p>{{/sinVidas}}
             {{#sinVidas}}<p class="mensaje resultado-mal">Te quedaste sin vidas.</p>{{/sinVidas}}
             {{#falloYContinua}}
                 <div class="fin-acciones">
@@ -86,37 +92,38 @@
                     <a href="/usuario/lobby" class="boton boton-secundario">Volver al inicio</a>
                 </div>
             {{/falloYContinua}}
-            {{^falloYContinua}}
+            {{#sinVidas}}
+                <div class="fin-acciones">
+                    <a href="/usuario/lobby" class="boton">Volver al inicio</a>
+                    <a href="/ranking/ver" class="boton boton-secundario">Ver ranking</a>
+                </div>
+            {{/sinVidas}}
+            {{^falloYContinua}}{{^sinVidas}}
                 <a id="continuar" href="{{siguiente}}" class="boton juego-continuar">{{textoSiguiente}}</a>
-            {{/falloYContinua}}
+            {{/sinVidas}}{{/falloYContinua}}
         {{/jugando}}
     </section>
 
     {{^jugando}}
-        <div style="text-align: center; margin-top: 2rem;">
-            <button type="button" onclick="document.getElementById('form-reporte').style.display='block'"
-                    style="background: none; border: none; color: #888; text-decoration: underline; cursor: pointer;">
+        <div class="reporte">
+            <button type="button" class="reporte-abrir" onclick="document.getElementById('form-reporte').style.display='block'">
                 🚩 Reportar un problema con esta pregunta
             </button>
 
-            <div id="form-reporte"
-                 style="display: none; margin-top: 1rem; padding: 1.5rem; background: #f8d7da; border-radius: 8px; text-align: left; border: 1px solid #f5c2c7;">
+            <div id="form-reporte" class="reporte-form" style="display: none;">
                 <form action="/pregunta/reportar" method="POST">
                     <input type="hidden" name="pregunta_id" value="{{pregunta.id}}">
 
-                    <label style="display: block; margin-bottom: 5px; font-weight: bold; color: #842029;">¿Cuál es el
+                    <label class="reporte-label" for="reporte-motivo">¿Cuál es el
                         problema con esta pregunta?</label>
-                    <textarea name="motivo" rows="3" required
-                              placeholder="Ej: La respuesta correcta está mal, tiene faltas de ortografía, etc."
-                              style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px; resize: vertical;"></textarea>
+                    <textarea name="motivo" id="reporte-motivo" class="reporte-motivo" rows="3" required
+                              placeholder="Ej: La respuesta correcta está mal, tiene faltas de ortografía, etc."></textarea>
 
-                    <div style="display: flex; gap: 10px;">
-                        <button type="submit" class="boton"
-                                style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                    <div class="reporte-acciones">
+                        <button type="submit" class="boton">
                             Enviar Reporte
                         </button>
-                        <button type="button" onclick="document.getElementById('form-reporte').style.display='none'"
-                                style="background: none; border: none; text-decoration: underline; cursor: pointer; color: #842029;">
+                        <button type="button" class="reporte-cancelar" onclick="document.getElementById('form-reporte').style.display='none'">
                             Cancelar
                         </button>
                     </div>

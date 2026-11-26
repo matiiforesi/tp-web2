@@ -45,9 +45,11 @@
     function crear(id, config) {
         var canvas = document.getElementById(id);
         if (!canvas) {
-            return;
+            return null;
         }
-        graficos.push(new Chart(canvas, config));
+        var grafico = new Chart(canvas, config);
+        graficos.push(grafico);
+        return grafico;
     }
 
     function colores(n) {
@@ -89,7 +91,7 @@
     });
 
     function dona(id, grafico, tipo) {
-        crear(id, {
+        return crear(id, {
             type: tipo,
             data: {
                 labels: grafico.labels,
@@ -99,17 +101,18 @@
         });
     }
 
-    dona('grafico-paises', datos.paises, 'doughnut');
-    dona('grafico-sexo', datos.sexo, 'pie');
+    // Los gráficos de usuarios arrancan con los registrados en el período; el selector alterna con el total.
+    var graficoPaises = dona('grafico-paises', datos.paises.periodo, 'doughnut');
+    var graficoSexo = dona('grafico-sexo', datos.sexo.periodo, 'pie');
 
-    crear('grafico-edad', {
+    var graficoEdad = crear('grafico-edad', {
         type: 'bar',
         data: {
-            labels: datos.edad.labels,
+            labels: datos.edad.periodo.labels,
             datasets: [{
                 label: 'Usuarios',
-                data: datos.edad.valores,
-                backgroundColor: colores(datos.edad.valores.length)
+                data: datos.edad.periodo.valores,
+                backgroundColor: colores(datos.edad.periodo.valores.length)
             }]
         },
         options: {
@@ -198,18 +201,63 @@
         elegirGranularidad('dia');
     }
 
+    // Usuarios por país, sexo y edad: "registrados en el período" o "total".
+    var botonesModo = document.querySelectorAll('.admin-modo');
+    var panelesModo = document.querySelectorAll('.admin-modo-panel');
+    var graficosUsuarios = [
+        {grafico: graficoPaises, datos: datos.paises},
+        {grafico: graficoSexo, datos: datos.sexo},
+        {grafico: graficoEdad, datos: datos.edad}
+    ];
+
+    function elegirModo(modo) {
+        botonesModo.forEach(function (b) {
+            var activo = b.getAttribute('data-modo') === modo;
+            b.classList.toggle('admin-modo-activo', activo);
+            b.setAttribute('aria-pressed', activo ? 'true' : 'false');
+        });
+        // Sin JS se ven las tablas de los dos modos; con JS, solo las del modo elegido.
+        panelesModo.forEach(function (p) {
+            p.hidden = p.getAttribute('data-modo') !== modo;
+        });
+        graficosUsuarios.forEach(function (u) {
+            var d = u.datos[modo];
+            if (!u.grafico || !d) {
+                return;
+            }
+            var serieDatos = u.grafico.data.datasets[0];
+            u.grafico.data.labels = d.labels;
+            serieDatos.data = d.valores;
+            serieDatos.backgroundColor = colores(d.valores.length);
+            // Sin usuarios en ese modo no se dibuja un gráfico vacío (la tabla explica que no hay datos).
+            u.grafico.canvas.parentNode.hidden = d.valores.reduce(function (a, b) {
+                return a + b;
+            }, 0) === 0;
+            u.grafico.update();
+        });
+    }
+
+    botonesModo.forEach(function (b) {
+        b.addEventListener('click', function () {
+            elegirModo(b.getAttribute('data-modo'));
+        });
+    });
+    elegirModo('periodo');
+
     // Colores de texto según el medio (el fondo de la pantalla es oscuro y el papel es blanco).
+    // Se escriben los colores en la configuración original de cada gráfico (g.config.options, objetos comunes) y se redibuja.
+    // No se asigna sobre g.options: son proxies de Chart.js y hacerlo provocaba "Maximum call stack size exceeded".
     function aplicarTema(tema) {
         graficos.forEach(function (g) {
-            var o = g.options;
-            if (o.plugins && o.plugins.legend && o.plugins.legend.labels) {
-                o.plugins.legend.labels.color = tema.texto;
-            } else if (o.plugins && o.plugins.legend) {
-                o.plugins.legend.labels = {color: tema.texto};
-            }
-            if (o.scales) {
-                Object.keys(o.scales).forEach(function (eje) {
-                    var e = o.scales[eje];
+            var o = g.config.options = g.config.options || {};
+            o.plugins = o.plugins || {};
+            o.plugins.legend = o.plugins.legend || {};
+            o.plugins.legend.labels = o.plugins.legend.labels || {};
+            o.plugins.legend.labels.color = tema.texto;
+            if (g.config.type === 'bar') {
+                o.scales = o.scales || {};
+                ['x', 'y'].forEach(function (eje) {
+                    var e = o.scales[eje] = o.scales[eje] || {};
                     e.ticks = e.ticks || {};
                     e.ticks.color = tema.texto;
                     e.grid = e.grid || {};

@@ -1,0 +1,488 @@
+/* Pantalla de pregunta, resultado, fin de partida y estrategias. */
+/* Las reglas marcadas con =style.css también están en style.css. Se repiten acá a propósito: pisan reglas de esta pantalla
+   y tienen que cargarse después de ellas para conservar el orden de la cascada. Si se cambia una, hay que cambiar las dos. */
+
+.juego-cabecera .juego-timer {
+    grid-area: 1 / 3;
+    justify-self: end;
+}
+
+.juego-enunciado {
+    margin: clamp(.6rem, 2.5vh, 1.4rem) 0;
+    font-size: clamp(1.25rem, 1.2vw + 2vh, 2rem);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.juego-opciones {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(.5rem, 1.5vh, .9rem);
+    counter-reset: opcion;
+}
+
+.opcion-texto {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.fin-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .75rem;
+}
+
+.fin-acciones .boton {
+    flex: 1 1 10rem;
+}
+
+.juego-timer {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 50%;
+    background: #243b53;
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+    transition: background-color .2s ease;
+}
+
+.timer-barra {
+    height: 6px;
+    margin-top: .75rem;
+    border-radius: 999px;
+    background: #34476a;
+    overflow: hidden;
+}
+
+.timer-progreso {
+    height: 100%;
+    background: var(--color-categoria, #356a9a);
+    transform-origin: left center;
+    transition: background-color .2s ease;
+}
+
+.tiempo-urgente .juego-timer,
+.tiempo-urgente .timer-progreso {
+    background: #c23636;
+}
+
+.enviado .opcion {
+    pointer-events: none;
+}
+
+.opcion-resultado,
+.opcion-resultado:hover {
+    cursor: default;
+    border-color: #dbe3ed;
+}
+
+/* En el resultado, la respuesta correcta va en verde y la elegida incorrecta en rojo.
+   Llevan .opcion-resultado para ganarle en especificidad a .opcion, .boton-secundario y sus :hover, que más abajo
+   pintan todas las opciones con el mismo fondo oscuro. */
+.opcion-resultado.opcion-correcta,
+.opcion-resultado.opcion-correcta:hover {
+    background: #1f7a46;
+    border-color: #2fa863;
+    color: #fff;
+}
+
+.opcion-resultado.opcion-incorrecta,
+.opcion-resultado.opcion-incorrecta:hover {
+    background: #b93030;
+    border-color: #e06666;
+    color: #fff;
+}
+
+.resultado-mensaje {
+    margin: clamp(.75rem, 2vh, 1.1rem) 0 .75rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.juego-continuar {
+    display: block;
+    width: 100%;
+}
+
+.racha-bonus {
+    display: inline-block;
+    padding: .65rem 1rem;
+    border: 2px solid #f4d35e;
+    border-radius: .7rem;
+    background: linear-gradient(135deg, #5a1c2a, #a52335);
+    color: #fff8e1;
+    font-weight: 900;
+    animation: bonus-pulse 1s ease-in-out infinite alternate;
+}
+
+.resultado-datos {
+    display: grid;
+    justify-items: center;
+    gap: .35rem;
+    margin: 0 0 .9rem;
+    text-align: center;
+}
+
+.resultado-datos p {
+    margin: 0;
+}
+
+.resultado-puntajes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    margin-bottom: .25rem;
+}
+
+.resultado-puntajes strong {
+    display: block;
+    color: #f4d35e;
+    font-size: 1.6rem;
+    line-height: 1.1;
+}
+
+.resultado-puntajes span {
+    display: block;
+    margin-top: .15rem;
+    color: #dbe4ef;
+    font-size: .8rem;
+}
+
+.resultado-puntajes div + div {
+    border-left: 1px solid #d4af3755;
+}
+
+@keyframes bonus-pulse {
+    from {
+        box-shadow: 0 0 .3rem #d4af37;
+    }
+    to {
+        box-shadow: 0 0 1.2rem #d4af37;
+    }
+}
+
+/* =style.css */
+.tarjeta {
+    background: linear-gradient(145deg, #17233b, #101827);
+    border: 1px solid #d4af3755;
+    box-shadow: 0 14px 34px #0006, inset 0 1px #ffffff12;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.tarjeta[style*="linear-gradient"] {
+    background: linear-gradient(135deg, #351522, #172747) !important;
+    border: 1px solid #d4af37 !important;
+}
+
+/* =style.css */
+.tarjeta[style*="color: white"], .tarjeta[style*="color: #fff"] {
+    color: #f7f1df !important;
+}
+
+/* =style.css */
+.boton {
+    background: linear-gradient(135deg, #b12b42, #7e172d);
+    border: 1px solid #e8c354;
+    color: #fff8e1;
+    box-shadow: 0 4px 12px #0005;
+    transition: background .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease;
+}
+
+/* =style.css */
+.boton:hover, .boton:focus-visible {
+    background: linear-gradient(135deg, #d7a928, #a87912);
+    border-color: #ffe9a0;
+    color: #17120a;
+    box-shadow: 0 0 0 3px #d4af3744, 0 6px 16px #0007;
+    transform: none;
+}
+
+/* =style.css */
+.boton-secundario {
+    background: #17233b;
+    border-color: #8ea2c0;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.boton-secundario:hover, .boton-secundario:focus-visible {
+    background: #263c67;
+    border-color: #f4d35e;
+    color: #fff8e1;
+}
+
+/* =style.css */
+.opcion:hover, .opcion:focus-visible {
+    background: #263c67;
+    border-color: #f4d35e;
+    color: #fff8e1;
+}
+
+/* =style.css */
+.opcion {
+    background: #17233b;
+    border-color: #536986;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.sugerir-contenido, .modal-qr-contenido {
+    background: #17233b;
+    color: #f7f1df;
+}
+
+/* =style.css */
+.tarjeta {
+    min-width: 0;
+    padding: 1rem;
+    border-radius: .8rem;
+}
+
+/* =style.css */
+.contenedor > div[style*="display: flex"] > .tarjeta {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+}
+
+.juego-enunciado {
+    font-size: clamp(1.2rem, 5vw, 1.65rem);
+}
+
+/* =style.css */
+.opcion {
+    min-height: 3.5rem;
+    padding: .7rem .75rem;
+    border-radius: .75rem;
+    font-size: 1rem;
+}
+
+/* =style.css */
+.acciones, .fin-acciones {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* =style.css */
+.acciones > *, .fin-acciones .boton {
+    width: 100%;
+    flex: initial;
+}
+
+@media (min-width: 600px) {
+    /* =style.css */
+    .tarjeta {
+        padding: clamp(1.25rem, 3vw, 2rem);
+    }
+
+    /* =style.css */
+    .contenedor > div[style*="display: flex"] > .tarjeta {
+        flex: 1 1 16rem !important;
+    }
+
+    /* =style.css */
+    .acciones, .fin-acciones {
+        flex-direction: row;
+    }
+
+    /* =style.css */
+    .acciones > *, .fin-acciones .boton {
+        width: auto;
+    }
+}
+
+/* Dock de estrategias tipo iPhone */
+.contenedor-juego:has(.estrategias-dock) {
+    padding-bottom: 8.5rem;
+}
+
+.estrategias-dock {
+    position: fixed;
+    z-index: 30;
+    left: 50%;
+    bottom: max(.65rem, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: min(96vw, 460px);
+    padding: .48rem .6rem .55rem;
+    border: 1px solid rgba(255, 255, 255, .22);
+    border-radius: 1.55rem;
+    background: rgba(13, 20, 36, .88);
+    color: #fff;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, .48), inset 0 1px rgba(255, 255, 255, .12);
+}
+
+.dock-saldo {
+    text-align: center;
+    font-size: .75rem;
+    color: #f5d66d;
+    margin-bottom: .25rem;
+}
+
+.dock-saldo .icono-moneda {
+    margin-right: .15rem;
+}
+
+.dock-opciones {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .2rem;
+}
+
+.dock-item {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .08rem;
+    padding: .28rem .08rem;
+    border: 0;
+    border-radius: 1rem;
+    color: #f8fafc;
+    background: transparent;
+    cursor: pointer;
+    transition: transform .16s ease, background .16s ease;
+}
+
+.dock-item:hover:not(:disabled), .dock-item:focus-visible {
+    background: rgba(255, 255, 255, .13);
+    transform: translateY(-3px);
+    outline: none;
+}
+
+.dock-item:disabled {
+    opacity: .72;
+    cursor: default;
+}
+
+.dock-item.dock-usado {
+    background: rgba(212, 175, 55, .18);
+}
+
+.dock-icono {
+    font-size: 1.55rem;
+    line-height: 1.15;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .35));
+}
+
+.dock-nombre {
+    font-size: .69rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.dock-precio {
+    color: #ffe28a;
+    font-size: .62rem;
+    white-space: nowrap;
+}
+
+.dock-moneda {
+    width: .82rem;
+    height: .82rem;
+    margin-left: .08rem;
+    border-width: 1px;
+    font-size: .52rem;
+    vertical-align: -.08rem;
+    box-shadow: inset 0 0 0 1px #b8861b;
+}
+
+.mensaje-estrategia {
+    min-height: 1.25rem;
+    margin: .45rem 0 0;
+    text-align: center;
+    color: #ffe28a;
+    font-size: .8rem;
+}
+
+.opcion.opcion-eliminada {
+    opacity: .4;
+    text-decoration: line-through;
+    pointer-events: none;
+}
+
+@media (min-width: 700px) {
+    .estrategias-dock {
+        bottom: 1rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dock-item {
+        transition: none;
+    }
+}
+
+/* Reportar un problema con la pregunta (pantalla de resultado) */
+.reporte {
+    margin-top: 1.25rem;
+    text-align: center;
+}
+
+.reporte-abrir,
+.reporte-cancelar {
+    padding: .4rem .6rem;
+    border: 0;
+    background: none;
+    color: #c5d2e3;
+    font: inherit;
+    font-size: .9rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.reporte-abrir:hover,
+.reporte-cancelar:hover {
+    color: #f4d35e;
+}
+
+.reporte-form {
+    margin-top: .75rem;
+    padding: 1rem;
+    border: 1px solid #d4af3755;
+    border-radius: .8rem;
+    background: #101827;
+    text-align: left;
+}
+
+.reporte-label {
+    display: block;
+    margin-bottom: .4rem;
+    font-weight: 700;
+    color: #f7f1df;
+}
+
+.reporte-motivo {
+    width: 100%;
+    margin-bottom: .75rem;
+    padding: .7rem .8rem;
+    border: 1px solid #65748e;
+    border-radius: .6rem;
+    background: #0c1423;
+    color: #fff8e1;
+    font: inherit;
+    resize: vertical;
+}
+
+.reporte-motivo::placeholder {
+    color: #8fa0b8;
+}
+
+.reporte-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .75rem;
+}
+
+.tarjeta-juego > .mensaje {
+    text-align: center;
+}
