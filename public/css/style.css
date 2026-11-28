@@ -888,3 +888,34 @@ body {
         padding: clamp(1.25rem, 3vw, 2rem);
     }
 }
+
+.boton-musica {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid #e8c354;
+    border-radius: 50%;
+    background: #17233b;
+    box-shadow: 0 4px 12px #0007;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: transform .15s ease, background .15s ease;
+}
+
+.boton-musica:hover {
+    background: #22324f;
+}
+
+.boton-musica:active {
+    transform: scale(.92);
+}
+
+.boton-musica:focus-visible {
+    outline: 3px solid #f4d35e;
+    outline-offset: 3px;
+}
