@@ -208,6 +208,140 @@ class PreguntaModel
         }
     }
 
+    const ESTADOS_EDITABLES = ['activa', 'pendiente', 'baja'];
+
+    public function todasLasCategorias(): array
+    {
+        return $this->db->queryAll("SELECT id, nombre, color FROM categoria ORDER BY nombre");
+    }
+
+    public function categoriaExiste(int $categoriaId): bool
+    {
+        return $this->db->queryOne("SELECT id FROM categoria WHERE id = ?", [$categoriaId]) !== null;
+    }
+
+    public function listarPreguntas(string $texto, int $categoriaId, string $estado, int $pagina, int $porPagina): array
+    {
+        $condiciones = [];
+        $params = [];
+        if ($texto !== '') {
+            $condiciones[] = "p.enunciado LIKE ?";
+            $params[] = '%' . addcslashes($texto, '%_\\') . '%';
+        }
+        if ($categoriaId > 0) {
+            $condiciones[] = "p.categoria_id = ?";
+            $params[] = $categoriaId;
+        }
+        if ($estado !== '') {
+            $condiciones[] = "p.estado = ?";
+            $params[] = $estado;
+        }
+        $where = $condiciones ? 'WHERE ' . implode(' AND ', $condiciones) : '';
+
+        $total = (int)($this->db->queryOne("SELECT COUNT(*) AS total FROM pregunta p $where", $params)['total'] ?? 0);
+        $desde = max(0, ($pagina - 1) * $porPagina);
+
+        $preguntas = $this->db->queryAll(
+            "SELECT p.id, p.enunciado, p.estado, p.fecha_creacion, c.nombre AS categoria, c.color AS categoria_color,
+                    COALESCE(u.usuario, 'Sistema') AS autor,
+                    (SELECT o.texto FROM opcion o WHERE o.pregunta_id = p.id AND o.es_correcta = 1 LIMIT 1) AS correcta,
+                    (SELECT COUNT(*) FROM partida_pregunta pp WHERE pp.pregunta_id = p.id AND pp.opcion_elegida_id IS NOT NULL) AS respondidas,
+                    (SELECT COUNT(*) FROM partida_pregunta pp WHERE pp.pregunta_id = p.id AND pp.correcta = 1) AS acertadas,
+                    (SELECT COUNT(*) FROM reporte_pregunta r WHERE r.pregunta_id = p.id AND r.resuelto = 0) AS reportes
+             FROM pregunta p
+             JOIN categoria c ON c.id = p.categoria_id
+             LEFT JOIN usuario u ON u.id = p.creada_por
+             $where
+             ORDER BY p.id DESC
+             LIMIT " . (int)$porPagina . " OFFSET " . (int)$desde,
+            $params
+        );
+        return ['preguntas' => $preguntas, 'total' => $total];
+    }
+
+    public function preguntaParaEditar(int $id): ?array
+    {
+        $pregunta = $this->db->queryOne(
+            "SELECT id, categoria_id, enunciado, estado FROM pregunta WHERE id = ?",
+            [$id]
+        );
+        if (!$pregunta) return null;
+        $pregunta['opciones'] = $this->db->queryAll(
+            "SELECT o.id, o.texto, o.es_correcta,
+                    EXISTS (SELECT 1 FROM partida_pregunta pp WHERE pp.opcion_elegida_id = o.id) AS usada
+             FROM opcion o WHERE o.pregunta_id = ? ORDER BY o.id",
+            [$id]
+        );
+        return $pregunta;
+    }
+
+    public function crearPregunta(int $editorId, int $categoriaId, string $enunciado, string $estado, array $opciones): int
+    {
+        $this->db->beginTransaction();
+        try {
+            $this->db->execute(
+                "INSERT INTO pregunta (categoria_id, enunciado, estado, creada_por) VALUES (?, ?, ?, ?)",
+                [$categoriaId, $enunciado, $estado, $editorId]
+            );
+            $preguntaId = (int)$this->db->lastInsertId();
+            foreach ($opciones as $opcion) {
+                $this->db->execute(
+                    "INSERT INTO opcion (pregunta_id, texto, es_correcta) VALUES (?, ?, ?)",
+                    [$preguntaId, $opcion['texto'], $opcion['es_correcta']]
+                );
+            }
+            $this->db->commit();
+            return $preguntaId;
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    public function actualizarPregunta(int $id, int $categoriaId, string $enunciado, string $estado, array $opciones, array $opcionesAQuitar): void
+    {
+        $this->db->beginTransaction();
+        try {
+            $this->db->execute(
+                "UPDATE pregunta SET categoria_id = ?, enunciado = ?, estado = ? WHERE id = ?",
+                [$categoriaId, $enunciado, $estado, $id]
+            );
+            foreach ($opcionesAQuitar as $opcionId) {
+                $this->db->execute("DELETE FROM opcion WHERE id = ? AND pregunta_id = ?", [$opcionId, $id]);
+            }
+            foreach ($opciones as $opcion) {
+                if ($opcion['id'] > 0) {
+                    $this->db->execute(
+                        "UPDATE opcion SET texto = ?, es_correcta = ? WHERE id = ? AND pregunta_id = ?",
+                        [$opcion['texto'], $opcion['es_correcta'], $opcion['id'], $id]
+                    );
+                } else {
+                    $this->db->execute(
+                        "INSERT INTO opcion (pregunta_id, texto, es_correcta) VALUES (?, ?, ?)",
+                        [$id, $opcion['texto'], $opcion['es_correcta']]
+                    );
+                }
+            }
+            if ($estado === 'baja') {
+                $this->db->execute("UPDATE reporte_pregunta SET resuelto = 1 WHERE pregunta_id = ? AND resuelto = 0", [$id]);
+            }
+            $this->db->commit();
+        } catch (\Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
+    public function cambiarEstado(int $id, string $estado): bool
+    {
+        if (!in_array($estado, ['activa', 'baja'], true)) return false;
+        $cambio = $this->db->execute("UPDATE pregunta SET estado = ? WHERE id = ? AND estado <> ?", [$estado, $id, $estado]) === 1;
+        if ($cambio && $estado === 'baja') {
+            $this->db->execute("UPDATE reporte_pregunta SET resuelto = 1 WHERE pregunta_id = ? AND resuelto = 0", [$id]);
+        }
+        return $cambio;
+    }
+
     public function resumenModeracion(): array
     {
         $pendientes = $this->db->queryOne("SELECT COUNT(*) AS total FROM pregunta WHERE estado = 'pendiente'");

@@ -15,7 +15,7 @@
             'partida' => 'partida', 'juegoVacio' => 'partida',
             'perfil' => 'perfil', 'perfilPublico' => 'perfil',
             'ranking' => 'ranking',
-            'editorInicio' => 'editor',
+            'editorInicio' => 'editor', 'editorPreguntas' => 'editor', 'editorFormulario' => 'editor',
             'adminPanel' => 'admin',
     ];
     $hojas = ['style'];

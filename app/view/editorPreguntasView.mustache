@@ -1,0 +1,85 @@
+<main class="contenedor editor-dashboard">
+    <div class="editor-bienvenida editor-bienvenida-acciones">
+        <div>
+            <span class="etiqueta">GESTIÓN DE PREGUNTAS</span>
+            <h1>Preguntas</h1>
+            <p>{{total}} pregunta(s){{#hayFiltros}} con estos filtros{{/hayFiltros}}.</p>
+        </div>
+        <div class="editor-acciones">
+            <a href="/pregunta/nueva" class="boton">+ Nueva pregunta</a>
+            <a href="/pregunta/inicio" class="boton boton-secundario">Moderación</a>
+        </div>
+    </div>
+
+    {{#exito}}<p class="info" role="status">{{exito}}</p>{{/exito}}
+    {{#aviso}}<p class="errores" role="alert">{{aviso}}</p>{{/aviso}}
+
+    <form class="tarjeta editor-filtros" action="/pregunta/listado" method="GET">
+        <div class="editor-filtro editor-filtro-texto">
+            <label class="editor-label" for="filtro-q">Buscar</label>
+            <input type="search" id="filtro-q" name="q" value="{{texto}}" placeholder="Texto de la pregunta">
+        </div>
+        <div class="editor-filtro">
+            <label class="editor-label" for="filtro-categoria">Categoría</label>
+            <select id="filtro-categoria" name="categoria">
+                <option value="">Todas</option>
+                {{#categorias}}<option value="{{id}}"{{#seleccionada}} selected{{/seleccionada}}>{{nombre}}</option>{{/categorias}}
+            </select>
+        </div>
+        <div class="editor-filtro">
+            <label class="editor-label" for="filtro-estado">Estado</label>
+            <select id="filtro-estado" name="estado">
+                <option value="">Todos</option>
+                {{#estados}}<option value="{{valor}}"{{#seleccionado}} selected{{/seleccionado}}>{{etiqueta}}</option>{{/estados}}
+            </select>
+        </div>
+        <div class="editor-filtro-botones">
+            <button type="submit" class="boton">Filtrar</button>
+            {{#hayFiltros}}<a href="/pregunta/listado" class="boton boton-secundario">Limpiar</a>{{/hayFiltros}}
+        </div>
+    </form>
+
+    {{#hayPreguntas}}
+        <div class="editor-lista">
+            {{#preguntas}}
+                <article class="tarjeta editor-item editor-fila" style="--color-categoria: {{categoriaColor}};">
+                    <div class="editor-item-meta">
+                        <span class="editor-categoria-chip">{{categoria}}</span>
+                        <span class="editor-estado editor-estado-{{estado}}">{{estadoEtiqueta}}</span>
+                    </div>
+                    <h3>#{{id}} · {{enunciado}}</h3>
+                    <dl class="editor-datos">
+                        <div><dt>Correcta</dt><dd>{{correcta}}</dd></div>
+                        <div><dt>Respondida</dt><dd>{{respondidas}} veces</dd></div>
+                        <div><dt>Acierto</dt><dd>{{acierto}}</dd></div>
+                        <div><dt>Autor</dt><dd>{{autor}}</dd></div>
+                        {{#reportes}}<div><dt>Reportes</dt><dd class="editor-dato-alerta">{{reportes}} sin revisar</dd></div>{{/reportes}}
+                    </dl>
+                    <div class="editor-acciones">
+                        <a href="/pregunta/editar?id={{id}}&amp;volver={{volverCodificado}}" class="boton">Editar</a>
+                        <form action="/pregunta/cambiarEstado" method="POST">
+                            <input type="hidden" name="id" value="{{id}}">
+                            <input type="hidden" name="volver" value="{{volver}}">
+                            {{#estaDeBaja}}
+                                <button type="submit" name="estado" value="activa" class="boton boton-secundario">Reactivar</button>
+                            {{/estaDeBaja}}
+                            {{^estaDeBaja}}
+                                <button type="submit" name="estado" value="baja" class="boton boton-secundario"
+                                        onclick="return confirm('¿Dar de baja la pregunta #{{id}}? Deja de salir en el juego.')">Dar de baja</button>
+                            {{/estaDeBaja}}
+                        </form>
+                    </div>
+                </article>
+            {{/preguntas}}
+        </div>
+
+        {{#hayPaginacion}}
+            <nav class="editor-paginacion" aria-label="Páginas">
+                {{#urlAnterior}}<a href="{{urlAnterior}}" class="boton boton-secundario">← Anterior</a>{{/urlAnterior}}
+                <span>Página {{pagina}} de {{paginas}}</span>
+                {{#urlSiguiente}}<a href="{{urlSiguiente}}" class="boton boton-secundario">Siguiente →</a>{{/urlSiguiente}}
+            </nav>
+        {{/hayPaginacion}}
+    {{/hayPreguntas}}
+    {{^hayPreguntas}}<div class="editor-vacio">No hay preguntas que coincidan con la búsqueda.</div>{{/hayPreguntas}}
+</main>

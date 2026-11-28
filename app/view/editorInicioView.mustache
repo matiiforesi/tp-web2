@@ -3,6 +3,10 @@
         <span class="etiqueta">PANEL DE MODERACIÓN</span>
         <h1>Hola, {{nombreEditor}}</h1>
         <p>Revisá las preguntas propuestas y los reportes de la comunidad.</p>
+        <div class="editor-acciones">
+            <a href="/pregunta/listado" class="boton">Gestionar preguntas</a>
+            <a href="/pregunta/nueva" class="boton boton-secundario">+ Nueva pregunta</a>
+        </div>
     </div>
 
     <section class="editor-resumen" aria-label="Pendientes">
@@ -33,6 +37,7 @@
                             <div class="editor-acciones">
                                 <button class="boton" type="submit" name="accion" value="aprobar">Aprobar pregunta</button>
                                 <button class="boton boton-secundario" type="submit" name="accion" value="rechazar">Rechazar</button>
+                                <a class="boton boton-secundario" href="/pregunta/editar?id={{id}}&amp;volver=%2Fpregunta%2Finicio">Editar opciones</a>
                             </div>
                         </form>
                     </article>
@@ -51,6 +56,7 @@
                         <div class="editor-item-meta"><span class="editor-categoria">{{categoria}}</span><span>Reportado por {{reportado_por}}</span></div>
                         <h3>{{enunciado}}</h3>
                         <p class="editor-motivo"><strong>Motivo:</strong> {{motivo}}</p>
+                        <a class="editor-link" href="/pregunta/editar?id={{pregunta_id}}&amp;volver=%2Fpregunta%2Finicio">Corregir la pregunta</a>
                         <form action="/pregunta/moderarReporte" method="POST" class="editor-acciones">
                             <input type="hidden" name="id" value="{{reporte_id}}">
                             <button class="boton" type="submit" name="accion" value="descartar">Marcar como revisado</button>
