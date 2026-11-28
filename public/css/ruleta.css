@@ -237,3 +237,50 @@
 .ruleta-card h1 {
     margin-top: .9rem;
 }
+
+.ruleta-tocable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    animation: ruleta-invita 1.8s ease-in-out infinite;
+}
+
+.ruleta-tocable:hover {
+    filter: drop-shadow(0 .8rem 1rem #0007) brightness(1.08);
+}
+
+.ruleta-tocable:focus-visible {
+    outline: 3px solid #f4d35e;
+    outline-offset: .5rem;
+}
+
+.ruleta-tocable:active {
+    scale: .97;
+}
+
+.ruleta-girando {
+    cursor: default;
+}
+
+@keyframes ruleta-invita {
+    0%, 100% { rotate: 0deg; }
+    50% { rotate: 6deg; }
+}
+
+.ruleta-card .ruleta-ayuda {
+    margin: 0 0 .9rem;
+    font-weight: 700;
+    color: #f4d35e;
+    animation: ruleta-ayuda-pulso 1.8s ease-in-out infinite;
+}
+
+@keyframes ruleta-ayuda-pulso {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ruleta-tocable,
+    .ruleta-card .ruleta-ayuda {
+        animation: none;
+    }
+}
