@@ -165,7 +165,7 @@ class UsuarioModel
     public function getPerfil($usuarioId)
     {
         return $this->db->queryOne(
-            "SELECT usuario, nombre_completo, fecha_nacimiento, sexo, pais, ciudad,
+            "SELECT usuario, nombre_completo, fecha_nacimiento, sexo, pais, ciudad, latitud, longitud,
                     email, foto_perfil, puntaje_total, cuenta_validada, fecha_registro
              FROM usuario
              WHERE id = ?",
@@ -216,7 +216,8 @@ class UsuarioModel
     public function getPerfilPublico(string $usuario): ?array
     {
         return $this->db->queryOne(
-            "SELECT id, usuario, nombre_completo, pais, ciudad, foto_perfil, puntaje_total
+            "SELECT id, usuario, nombre_completo, pais, ciudad, ROUND(latitud, 2) AS latitud, ROUND(longitud, 2) AS longitud,
+                    foto_perfil, puntaje_total
              FROM usuario WHERE usuario = ? AND cuenta_validada = 1",
             [$usuario]
         );
