@@ -180,17 +180,13 @@ class PreguntaModel
         return $resultado ? (int)$resultado['puntaje_total'] : 0;
     }
 
-    /**
-     * Guarda el reporte solo si la pregunta esta activa, el usuario ya la vio y la respondio (no si sigue pendiente)
-     * y no tiene otro reporte sin resolver de esa misma pregunta. Devuelve 1 si se guardo, 0 si no.
-     */
     public function guardarReporte($preguntaId, $usuarioId, $motivo)
     {
         $sql = "INSERT INTO reporte_pregunta (pregunta_id, usuario_id, motivo)
                 SELECT p.id, ?, ? FROM pregunta p
                 WHERE p.id = ? AND p.estado = 'activa'
                   AND EXISTS (SELECT 1 FROM partida_pregunta pp
-                              WHERE pp.pregunta_id = p.id AND pp.correcta IS NOT NULL
+                              WHERE pp.pregunta_id = p.id
                                 AND pp.partida_id IN (SELECT pa.id FROM partida pa WHERE pa.usuario_id = ?))
                   AND NOT EXISTS (SELECT 1 FROM reporte_pregunta r
                                   WHERE r.pregunta_id = p.id AND r.usuario_id = ? AND r.resuelto = 0)";

@@ -39,15 +39,27 @@ class PreguntaController
     public function reportar()
     {
         $usuarioId = $this->exigirLogin();
+        $esAjax = Request::post('ajax', '') === '1';
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') Redirect::to('/partida/jugar');
         $preguntaId = (int)Request::post('pregunta_id', 0);
         $motivo = trim((string)Request::post('motivo', ''));
-        if ($preguntaId > 0 && $motivo !== '' && mb_strlen($motivo) <= 255
-            && $this->model->guardarReporte($preguntaId, $usuarioId, $motivo) === 1) {
-            $_SESSION['aviso_reporte'] = 'Gracias. El reporte quedó pendiente de revisión.';
-        } else {
-            $_SESSION['aviso_reporte'] = 'No se pudo enviar el reporte: solo podés reportar preguntas que ya respondiste y que no reportaste antes.';
+        $detalle = trim((string)Request::post('detalle', ''));
+        if ($detalle !== '') {
+            $motivo = $motivo === '' ? $detalle : $motivo . ': ' . $detalle;
         }
+        $guardado = $preguntaId > 0 && $motivo !== '' && mb_strlen($motivo) <= 255
+            && $this->model->guardarReporte($preguntaId, $usuarioId, $motivo) === 1;
+        $mensaje = $guardado
+            ? 'Gracias. El reporte quedó pendiente de revisión.'
+            : 'No se pudo enviar el reporte: indicá el motivo (hasta 255 caracteres) y recordá que no podés reportar dos veces la misma pregunta.';
+
+        if ($esAjax) {
+            header('Content-Type: application/json; charset=utf-8');
+            if (!$guardado) http_response_code(422);
+            echo json_encode(['ok' => $guardado, 'mensaje' => $mensaje]);
+            return;
+        }
+        $_SESSION['aviso_reporte'] = $mensaje;
         Redirect::to('/partida/resultado');
     }
 

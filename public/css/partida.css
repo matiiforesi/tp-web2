@@ -476,6 +476,18 @@
     color: #8fa0b8;
 }
 
+.reporte-nota {
+    margin: -.25rem 0 .75rem;
+    font-size: .85rem;
+    color: #8fa0b8;
+}
+
+.reporte-abrir:disabled {
+    cursor: default;
+    text-decoration: none;
+    opacity: .7;
+}
+
 .reporte-acciones {
     display: flex;
     flex-wrap: wrap;

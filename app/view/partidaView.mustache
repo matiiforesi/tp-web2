@@ -104,6 +104,42 @@
         {{/jugando}}
     </section>
 
+    {{#jugando}}
+        <div class="reporte">
+            <button type="button" id="reporte-abrir-juego" class="reporte-abrir">
+                🚩 Reportar esta pregunta
+            </button>
+
+            <div id="form-reporte-juego" class="reporte-form" style="display: none;">
+                <form id="reporte-juego">
+                    <input type="hidden" name="pregunta_id" value="{{pregunta.id}}">
+                    <input type="hidden" name="ajax" value="1">
+
+                    <label class="reporte-label" for="reporte-motivo-juego">¿Cuál es el problema?</label>
+                    <select name="motivo" id="reporte-motivo-juego" class="reporte-motivo" required>
+                        <option value="">Elegí un motivo</option>
+                        <option>La respuesta correcta está mal</option>
+                        <option>Hay más de una respuesta correcta</option>
+                        <option>La pregunta es confusa o ambigua</option>
+                        <option>Tiene errores de ortografía</option>
+                        <option>Está en la categoría equivocada</option>
+                        <option>Es ofensiva o inapropiada</option>
+                        <option>Otro</option>
+                    </select>
+                    <textarea name="detalle" class="reporte-motivo" rows="2" maxlength="200"
+                              placeholder="Detalle (opcional)"></textarea>
+                    <p class="reporte-nota">El tiempo sigue corriendo mientras reportás.</p>
+
+                    <div class="reporte-acciones">
+                        <button type="submit" class="boton">Enviar reporte</button>
+                        <button type="button" id="reporte-cancelar-juego" class="reporte-cancelar">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+            <p id="reporte-aviso-juego" class="info" role="status" aria-live="polite" style="display: none;"></p>
+        </div>
+    {{/jugando}}
+
     {{^jugando}}
         <div class="reporte">
             <button type="button" class="reporte-abrir" onclick="document.getElementById('form-reporte').style.display='block'">
@@ -134,6 +170,41 @@
 </main>
 
 <script>
+    (function () {
+        var abrir = document.getElementById('reporte-abrir-juego');
+        var caja = document.getElementById('form-reporte-juego');
+        var form = document.getElementById('reporte-juego');
+        var aviso = document.getElementById('reporte-aviso-juego');
+        if (!abrir || !form) return;
+
+        abrir.addEventListener('click', function () { caja.style.display = 'block'; });
+        document.getElementById('reporte-cancelar-juego').addEventListener('click', function () { caja.style.display = 'none'; });
+
+        form.addEventListener('submit', function (evento) {
+            evento.preventDefault();
+            var enviar = form.querySelector('[type="submit"]');
+            enviar.disabled = true;
+            fetch('/pregunta/reportar', {method: 'POST', body: new URLSearchParams(new FormData(form))})
+                    .then(function (respuesta) { return respuesta.json(); })
+                    .then(function (datos) {
+                        aviso.textContent = datos.mensaje;
+                        aviso.style.display = 'block';
+                        if (datos.ok) {
+                            caja.style.display = 'none';
+                            abrir.disabled = true;
+                            abrir.textContent = '🚩 Pregunta reportada';
+                        } else {
+                            enviar.disabled = false;
+                        }
+                    })
+                    .catch(function () {
+                        aviso.textContent = 'No se pudo enviar el reporte. Probá de nuevo.';
+                        aviso.style.display = 'block';
+                        enviar.disabled = false;
+                    });
+        });
+    })();
+
     (function () {
         var form = document.getElementById('form-respuesta');
 
